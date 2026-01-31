@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Tracker - Manage Your Applications</title>
+    <meta name="description" content="Track your job and internship applications with ease">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div class="content-wrapper">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-text">
+                    <h1 class="header-title">Job Tracker</h1>
+                    <p class="header-subtitle">Track and manage your job applications</p>
+                </div>
+                <div class="header-actions">
+                    <button id="help-btn" class="header-btn" title="Keyboard Shortcuts">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <kbd class="kbd">?</kbd>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Stats -->
+            <div id="dashboard-stats" class="dashboard-section"></div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar glass">
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    class="search-input" 
+                    placeholder="Search applications... (press '/')"
+                />
+                <select id="status-filter" class="status-select">
+                    <option value="">All Statuses</option>
+                    <option value="Interested">Interested</option>
+                    <option value="Applied">Applied</option>
+                    <option value="Phone Screen">Phone Screen</option>
+                    <option value="Technical Interview">Technical Interview</option>
+                    <option value="Final Round">Final Round</option>
+                    <option value="Offer Received">Offer Received</option>
+                    <option value="Accepted">Accepted</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="No Reply">No Reply</option>
+                    <option value="Ghosted">Ghosted</option>
+                    <option value="Withdrawn">Withdrawn</option>
+                </select>
+            </div>
+
+            <!-- View Toggle & Import/Export -->
+            <div class="view-controls">
+                <div class="view-toggle glass">
+                    <button id="table-view-btn" class="view-btn active">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Table
+                    </button>
+                    <button id="board-view-btn" class="view-btn">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                        </svg>
+                        Board
+                    </button>
+                </div>
+
+                <div class="import-export-btns">
+                    <button id="export-btn" class="action-btn">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Export
+                    </button>
+                    <button id="import-btn" class="action-btn">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        Import
+                    </button>
+                    <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                </div>
+            </div>
+
+            <!-- Table View -->
+            <div id="table-view" class="view-container">
+                <div id="bulk-actions-bar" class="bulk-actions-bar glass" style="display: none;">
+                    <span id="selected-count" class="selected-text"></span>
+                    <div class="bulk-actions">
+                        <select id="bulk-status-select" class="bulk-status-select">
+                            <option value="">Change Status...</option>
+                            <option value="Applied">Applied</option>
+                            <option value="Phone Screen">Phone Screen</option>
+                            <option value="Technical Interview">Technical Interview</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="Offer Received">Offer Received</option>
+                        </select>
+                        <button id="bulk-delete-btn" class="bulk-delete-btn">Delete Selected</button>
+                        <button id="clear-selection-btn" class="clear-selection-btn">Clear Selection</button>
+                    </div>
+                </div>
+                
+                <div id="applications-table-wrapper"></div>
+                
+                <button id="add-application-btn" class="add-btn">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Add Application</span>
+                </button>
+            </div>
+
+            <!-- Board View -->
+            <div id="board-view" class="view-container" style="display: none;">
+                <div id="kanban-board" class="kanban-board"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Add Modal -->
+    <div id="quick-add-modal" class="modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Quick Add Application</h2>
+                <button class="modal-close" id="quick-add-close">×</button>
+            </div>
+            <form id="quick-add-form" class="modal-form">
+                <div class="form-group">
+                    <label for="qa-company">Company *</label>
+                    <input type="text" id="qa-company" class="form-input" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="qa-jobtitle">Job Title *</label>
+                    <input type="text" id="qa-jobtitle" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="qa-status">Status</label>
+                    <select id="qa-status" class="form-select">
+                        <option value="Interested">Interested</option>
+                        <option value="Applied" selected>Applied</option>
+                        <option value="Phone Screen">Phone Screen</option>
+                        <option value="Technical Interview">Technical Interview</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="qa-link">Job Link</label>
+                    <input type="url" id="qa-link" class="form-input" placeholder="https://">
+                </div>
+                <div class="form-group">
+                    <label for="qa-salary">Salary</label>
+                    <input type="text" id="qa-salary" class="form-input" placeholder="e.g., $80k-$100k">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="modal-cancel" id="quick-add-cancel">Cancel</button>
+                    <button type="submit" class="modal-submit">Add Application</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Help Modal -->
+    <div id="help-modal" class="modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Keyboard Shortcuts</h2>
+                <button class="modal-close" id="help-close">×</button>
+            </div>
+            <div class="shortcuts-list">
+                <div class="shortcut-item">
+                    <div class="shortcut-keys">
+                        <kbd>Cmd/Ctrl</kbd> + <kbd>K</kbd>
+                    </div>
+                    <div class="shortcut-desc">Quick add application</div>
+                </div>
+                <div class="shortcut-item">
+                    <div class="shortcut-keys">
+                        <kbd>/</kbd>
+                    </div>
+                    <div class="shortcut-desc">Focus search</div>
+                </div>
+                <div class="shortcut-item">
+                    <div class="shortcut-keys">
+                        <kbd>?</kbd>
+                    </div>
+                    <div class="shortcut-desc">Show this help</div>
+                </div>
+                <div class="shortcut-item">
+                    <div class="shortcut-keys">
+                        <kbd>Esc</kbd>
+                    </div>
+                    <div class="shortcut-desc">Close modals</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button (Mobile) -->
+    <button id="fab" class="fab" title="Quick Add (Cmd+K)">
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+    </button>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
