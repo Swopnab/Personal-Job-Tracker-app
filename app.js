@@ -1,7 +1,7 @@
 // ===== STATE MANAGEMENT =====
 const STATUS_OPTIONS = [
     "Interested",
-    "Applied", 
+    "Applied",
     "Phone Screen",
     "Technical Interview",
     "Final Round",
@@ -70,17 +70,17 @@ function calculateDaysSince(dateString) {
 function calculateStats() {
     const total = applications.length;
     const statusCounts = {};
-    
+
     STATUS_OPTIONS.forEach(status => {
         statusCounts[status] = applications.filter(app => app.status === status).length;
     });
-    
-    const responded = applications.filter(app => 
+
+    const responded = applications.filter(app =>
         ['Phone Screen', 'Technical Interview', 'Final Round', 'Offer Received', 'Accepted'].includes(app.status)
     ).length;
-    
+
     const responseRate = total > 0 ? Math.round((responded / total) * 100) : 0;
-    
+
     return { total, statusCounts, responseRate };
 }
 
@@ -97,33 +97,33 @@ function renderDashboard() {
     const stats = calculateStats();
     const followUps = calculateFollowUps();
     const container = document.getElementById('dashboard-stats');
-    
+
     let html = '<div class="stats-grid">';
-    
+
     // Stat cards
     html += `
-        <div class="stat-card glass-hover">
+        <div class="stat-card glass-hover glow-card">
             <div class="stat-gradient" style="background: linear-gradient(to bottom right, var(--primary), var(--purple));"></div>
             <div class="stat-content">
                 <p class="stat-title">Total Tracked</p>
                 <p class="stat-value">${stats.total}</p>
             </div>
         </div>
-        <div class="stat-card glass-hover">
+        <div class="stat-card glass-hover glow-card">
             <div class="stat-gradient" style="background: linear-gradient(to bottom right, var(--purple), #ec4899);"></div>
             <div class="stat-content">
                 <p class="stat-title">Applied</p>
                 <p class="stat-value">${stats.statusCounts['Applied'] || 0}</p>
             </div>
         </div>
-        <div class="stat-card glass-hover">
+        <div class="stat-card glass-hover glow-card">
             <div class="stat-gradient" style="background: linear-gradient(to bottom right, var(--yellow), var(--orange));"></div>
             <div class="stat-content">
                 <p class="stat-title">Interviewing</p>
                 <p class="stat-value">${(stats.statusCounts['Phone Screen'] || 0) + (stats.statusCounts['Technical Interview'] || 0) + (stats.statusCounts['Final Round'] || 0)}</p>
             </div>
         </div>
-        <div class="stat-card glass-hover">
+        <div class="stat-card glass-hover glow-card">
             <div class="stat-gradient" style="background: linear-gradient(to bottom right, var(--green), var(--emerald));"></div>
             <div class="stat-content">
                 <p class="stat-title">Response Rate</p>
@@ -131,9 +131,9 @@ function renderDashboard() {
             </div>
         </div>
     `;
-    
+
     html += '</div>';
-    
+
     // Status breakdown
     html += '<div class="status-breakdown"><h3>Status Breakdown</h3><div class="status-grid">';
     Object.entries(stats.statusCounts).forEach(([status, count]) => {
@@ -148,7 +148,7 @@ function renderDashboard() {
         }
     });
     html += '</div></div>';
-    
+
     // Follow-ups
     if (followUps.length > 0) {
         html += `
@@ -169,7 +169,7 @@ function renderDashboard() {
             </div>
         `;
     }
-    
+
     container.innerHTML = html;
 }
 
@@ -196,9 +196,9 @@ function filterApplications() {
             app.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             app.jobTitle?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             app.notes?.toLowerCase().includes(searchQuery.toLowerCase());
-        
+
         const matchesStatus = !statusFilter || app.status === statusFilter;
-        
+
         return matchesSearch && matchesStatus;
     });
 }
@@ -206,7 +206,7 @@ function filterApplications() {
 function renderTableView() {
     filterApplications();
     const wrapper = document.getElementById('applications-table-wrapper');
-    
+
     if (applications.length === 0 && !searchQuery && !statusFilter) {
         // Empty state
         wrapper.innerHTML = `
@@ -242,7 +242,7 @@ function renderTableView() {
         `;
         return;
     }
-    
+
     if (filteredApplications.length === 0) {
         wrapper.innerHTML = `
             <div class="table-wrapper">
@@ -262,7 +262,7 @@ function renderTableView() {
         `;
         return;
     }
-    
+
     let html = '<div class="table-wrapper"><table class="applications-table"><thead><tr>';
     html += `
         <th><input type="checkbox" id="select-all" ${filteredApplications.length > 0 && selectedIds.size === filteredApplications.length ? 'checked' : ''}></th>
@@ -276,7 +276,7 @@ function renderTableView() {
         <th></th>
     `;
     html += '</tr></thead><tbody>';
-    
+
     filteredApplications.forEach(app => {
         html += `
             <tr>
@@ -304,10 +304,10 @@ function renderTableView() {
             </tr>
         `;
     });
-    
+
     html += '</tbody></table></div>';
     wrapper.innerHTML = html;
-    
+
     // Attach event listeners
     attachTableEventListeners();
 }
@@ -326,7 +326,7 @@ function attachTableEventListeners() {
             renderTableView();
         });
     }
-    
+
     // Row checkboxes
     document.querySelectorAll('.row-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', (e) => {
@@ -340,7 +340,7 @@ function attachTableEventListeners() {
             renderTableView();
         });
     });
-    
+
     // Editable cells
     document.querySelectorAll('.editable-cell').forEach(cell => {
         cell.addEventListener('blur', (e) => {
@@ -350,7 +350,7 @@ function attachTableEventListeners() {
             updateApplicationField(id, field, value);
         });
     });
-    
+
     // Status selects
     document.querySelectorAll('.status-select[data-id]').forEach(select => {
         select.addEventListener('change', (e) => {
@@ -358,7 +358,7 @@ function attachTableEventListeners() {
             updateApplicationField(id, 'status', e.target.value);
         });
     });
-    
+
     // Date inputs
     document.querySelectorAll('input[type="date"][data-id]').forEach(input => {
         input.addEventListener('change', (e) => {
@@ -371,7 +371,7 @@ function attachTableEventListeners() {
 function renderBoardView() {
     filterApplications();
     const container = document.getElementById('kanban-board');
-    
+
     const columns = [
         'Interested',
         'Applied',
@@ -381,7 +381,7 @@ function renderBoardView() {
         'Offer Received',
         'Rejected'
     ];
-    
+
     let html = '';
     columns.forEach(status => {
         const cards = filteredApplications.filter(app => app.status === status);
@@ -413,30 +413,30 @@ function renderBoardView() {
             </div>
         `;
     });
-    
+
     container.innerHTML = html;
     attachDragAndDropListeners();
 }
 
 function attachDragAndDropListeners() {
     let draggedElement = null;
-    
+
     document.querySelectorAll('.kanban-card').forEach(card => {
         card.addEventListener('dragstart', (e) => {
             draggedElement = e.target;
             e.target.classList.add('dragging');
         });
-        
+
         card.addEventListener('dragend', (e) => {
             e.target.classList.remove('dragging');
         });
     });
-    
+
     document.querySelectorAll('.kanban-cards').forEach(column => {
         column.addEventListener('dragover', (e) => {
             e.preventDefault();
         });
-        
+
         column.addEventListener('drop', (e) => {
             e.preventDefault();
             if (draggedElement) {
@@ -452,7 +452,7 @@ function attachDragAndDropListeners() {
 function updateBulkActionsBar() {
     const bar = document.getElementById('bulk-actions-bar');
     const countEl = document.getElementById('selected-count');
-    
+
     if (selectedIds.size > 0) {
         bar.style.display = 'flex';
         countEl.textContent = `${selectedIds.size} selected`;
@@ -472,7 +472,7 @@ function addNewApplication() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
     };
-    
+
     applications.unshift(newApp);
     saveToLocalStorage();
     renderCurrentView();
@@ -506,7 +506,7 @@ function deleteApplication(id) {
 function bulkDeleteApplications() {
     if (selectedIds.size === 0) return;
     if (!confirm(`Delete ${selectedIds.size} application(s)?`)) return;
-    
+
     applications = applications.filter(app => !selectedIds.has(app.id));
     selectedIds.clear();
     saveToLocalStorage();
@@ -518,14 +518,14 @@ function bulkDeleteApplications() {
 
 function bulkUpdateStatus(status) {
     if (selectedIds.size === 0) return;
-    
+
     applications.forEach(app => {
         if (selectedIds.has(app.id)) {
             app.status = status;
             app.updatedAt = new Date().toISOString();
         }
     });
-    
+
     saveToLocalStorage();
     selectedIds.clear();
     renderCurrentView();
@@ -537,13 +537,13 @@ function bulkUpdateStatus(status) {
 // ===== VIEW MANAGEMENT =====
 function switchView(view) {
     currentView = view;
-    
+
     document.getElementById('table-view').style.display = view === 'table' ? 'block' : 'none';
     document.getElementById('board-view').style.display = view === 'board' ? 'block' : 'none';
-    
+
     document.getElementById('table-view-btn').classList.toggle('active', view === 'table');
     document.getElementById('board-view-btn').classList.toggle('active', view === 'board');
-    
+
     renderCurrentView();
 }
 
@@ -613,14 +613,14 @@ function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    
-    const icon = type === 'success' 
+
+    const icon = type === 'success'
         ? '<svg class="toast-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>'
         : '<svg class="toast-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>';
-    
+
     toast.innerHTML = `${icon}<div class="toast-message">${message}</div>`;
     container.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.remove();
     }, 3000);
@@ -631,23 +631,23 @@ document.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
     renderDashboard();
     renderCurrentView();
-    
+
     // Search
     document.getElementById('search-input').addEventListener('input', (e) => {
         searchQuery = e.target.value;
         renderCurrentView();
     });
-    
+
     // Status filter
     document.getElementById('status-filter').addEventListener('change', (e) => {
         statusFilter = e.target.value;
         renderCurrentView();
     });
-    
+
     // View toggle
     document.getElementById('table-view-btn').addEventListener('click', () => switchView('table'));
     document.getElementById('board-view-btn').addEventListener('click', () => switchView('board'));
-    
+
     // Import/Export
     document.getElementById('export-btn').addEventListener('click', exportApplications);
     document.getElementById('import-btn').addEventListener('click', () => {
@@ -658,19 +658,19 @@ document.addEventListener('DOMContentLoaded', () => {
             importApplications(e.target.files[0]);
         }
     });
-    
+
     // Add button
     document.getElementById('add-application-btn').addEventListener('click', addNewApplication);
-    
+
     // FAB
     document.getElementById('fab').addEventListener('click', openQuickAddModal);
-    
+
     // Quick Add Modal
     document.getElementById('help-btn').addEventListener('click', openHelpModal);
     document.getElementById('quick-add-close').addEventListener('click', closeQuickAddModal);
     document.getElementById('quick-add-cancel').addEventListener('click', closeQuickAddModal);
     document.getElementById('help-close').addEventListener('click', closeHelpModal);
-    
+
     document.getElementById('quick-add-form').addEventListener('submit', (e) => {
         e.preventDefault();
         const formData = {
@@ -684,7 +684,7 @@ document.addEventListener('DOMContentLoaded', () => {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
-        
+
         applications.unshift(formData);
         saveToLocalStorage();
         renderCurrentView();
@@ -692,7 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
         closeQuickAddModal();
         showToast('Application added', 'success');
     });
-    
+
     // Bulk actions
     document.getElementById('bulk-delete-btn').addEventListener('click', bulkDeleteApplications);
     document.getElementById('clear-selection-btn').addEventListener('click', () => {
@@ -706,7 +706,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.target.value = '';
         }
     });
-    
+
     // Modal overlays
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
         overlay.addEventListener('click', () => {
@@ -714,7 +714,7 @@ document.addEventListener('DOMContentLoaded', () => {
             closeHelpModal();
         });
     });
-    
+
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
         // Cmd/Ctrl + K - Quick Add
@@ -722,23 +722,37 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             openQuickAddModal();
         }
-        
+
         // / - Focus search
         if (e.key === '/' && !e.target.matches('input, textarea, [contenteditable]')) {
             e.preventDefault();
             document.getElementById('search-input').focus();
         }
-        
+
         // ? - Show help
         if (e.key === '?' && !e.target.matches('input, textarea, [contenteditable]')) {
             e.preventDefault();
             openHelpModal();
         }
-        
+
         // Escape - Close modals
         if (e.key === 'Escape') {
             closeQuickAddModal();
             closeHelpModal();
         }
     });
+
+    // Initialize visual effects
+    // Flow field background
+    if (typeof initFlowFieldBackground === 'function') {
+        initFlowFieldBackground();
+    }
+
+    // Glowing effects on stat cards (after dashboard is rendered)
+    setTimeout(() => {
+        if (typeof initGlowingEffects === 'function') {
+            initGlowingEffects();
+        }
+    }, 100);
 });
+

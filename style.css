@@ -1053,3 +1053,83 @@ a {
         display: none;
     }
 }
+
+/* ===== FLOW FIELD BACKGROUND ===== */
+#flow-field-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: var(--background);
+    overflow: hidden;
+}
+
+.flow-field-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* ===== GLOWING EFFECT ===== */
+.glow-card {
+    position: relative;
+}
+
+.glow-wrapper {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+.glow-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+}
+
+.glow-inner::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--glowingeffect-border-width, 3px));
+    border-radius: inherit;
+    border: var(--glowingeffect-border-width, 3px) solid transparent;
+    background: radial-gradient(circle, #dd7bbb 10%, #dd7bbb00 20%),
+                radial-gradient(circle at 40% 40%, #d79f1e 5%, #d79f1e00 15%),
+                radial-gradient(circle at 60% 60%, #5a922c 10%, #5a922c00 20%), 
+                radial-gradient(circle at 40% 60%, #4c7894 10%, #4c789400 20%),
+                repeating-conic-gradient(
+                  from calc(var(--start, 0) * 1deg) at 50% 50%,
+                  #dd7bbb 0%,
+                  #d79f1e calc(25% / 5),
+                  #5a922c calc(50% / 5), 
+                  #4c7894 calc(75% / 5),
+                  #dd7bbb calc(100% / 5)
+                );
+    background-attachment: fixed;
+    opacity: var(--active, 0);
+    transition: opacity 0.3s;
+    -webkit-mask-image: linear-gradient(#000, #000), 
+                        conic-gradient(
+                          from calc((var(--start, 0) - var(--spread, 40)) * 1deg),
+                          #00000000 0deg,
+                          #fff,
+                          #00000000 calc(var(--spread, 40) * 2deg)
+                        );
+    -webkit-mask-clip: padding-box, border-box;
+    -webkit-mask-composite: intersect;
+    mask-image: linear-gradient(#000, #000), 
+                conic-gradient(
+                  from calc((var(--start, 0) - var(--spread, 40)) * 1deg),
+                  #00000000 0deg,
+                  #fff,
+                  #00000000 calc(var(--spread, 40) * 2deg)
+                );
+    mask-clip: padding-box, border-box;
+    mask-composite: intersect;
+}
