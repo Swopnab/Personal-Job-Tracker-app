@@ -1,8 +1,8 @@
 /* CSS Variables */
 :root {
     --background: #08080f;
-    --foreground: #e8e8f4;        /* bright off-white, never disappears */
-    --foreground-dim: #b0b4cc;   /* secondary text */
+    --foreground: #ffffff;        /* pure white for all main text */
+    --foreground-dim: #ffffff;   /* secondary text — also white */
     --card: #12121e;
     --card-hover: #1c1c2e;
     --border: #252538;
@@ -11,7 +11,7 @@
     --success: #10b981;
     --warning: #f59e0b;
     --error: #ef4444;
-    --muted: #8b92a9;            /* readable, not too dark */
+    --muted: #d0d4e8;            /* muted text — light enough to read as white */
 
     /* Status Colors */
     --blue: #60a5fa;
@@ -96,8 +96,9 @@ a {
 
 /* Layout */
 .app-container {
+    position: relative;   /* needed for absolute header-actions */
     min-height: 100vh;
-    padding: 1rem;
+    padding: 1.5rem 1.5rem 3rem;
 }
 
 .content-wrapper {
@@ -302,7 +303,7 @@ a {
 
 .follow-up-item {
     font-size: 0.875rem;
-    color: #d1d5db;
+    color: #ffffff;
 }
 
 /* Filter Bar */
@@ -419,7 +420,7 @@ a {
 
 .selected-text {
     font-size: 0.875rem;
-    color: #d1d5db;
+    color: #ffffff;
 }
 
 .bulk-actions {
@@ -496,7 +497,7 @@ a {
     padding: 0.75rem;
     font-size: 0.875rem;
     font-weight: 600;
-    color: #d1d5db;
+    color: #ffffff;
 }
 
 .applications-table td {
@@ -618,7 +619,7 @@ a {
 .empty-tips p {
     font-size: 0.875rem;
     font-weight: 600;
-    color: #d1d5db;
+    color: #ffffff;
     margin-bottom: 0.5rem;
 }
 
@@ -829,7 +830,7 @@ a {
 .form-group label {
     font-size: 0.875rem;
     font-weight: 500;
-    color: #d1d5db;
+    color: #ffffff;
 }
 
 .form-input, .form-select {
