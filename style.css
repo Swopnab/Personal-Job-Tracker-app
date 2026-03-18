@@ -1,28 +1,33 @@
 /* CSS Variables */
 :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --card: #1a1a1a;
-    --card-hover: #252525;
-    --border: #2a2a2a;
-    --primary: #6366f1;
-    --primary-hover: #4f46e5;
+    --background: #08080f;
+    --foreground: #e8e8f4;        /* bright off-white, never disappears */
+    --foreground-dim: #b0b4cc;   /* secondary text */
+    --card: #12121e;
+    --card-hover: #1c1c2e;
+    --border: #252538;
+    --primary: #7c6ff7;
+    --primary-hover: #6366f1;
     --success: #10b981;
     --warning: #f59e0b;
     --error: #ef4444;
-    --muted: #6b7280;
-    
+    --muted: #8b92a9;            /* readable, not too dark */
+
     /* Status Colors */
-    --blue: #3b82f6;
-    --purple: #a855f7;
-    --cyan: #06b6d4;
-    --yellow: #eab308;
-    --orange: #f97316;
-    --green: #22c55e;
+    --blue: #60a5fa;
+    --purple: #c084fc;
+    --cyan: #22d3ee;
+    --yellow: #fbbf24;
+    --orange: #fb923c;
+    --green: #34d399;
     --emerald: #10b981;
-    --red: #ef4444;
-    --gray: #6b7280;
-    --slate: #64748b;
+    --red: #f87171;
+    --gray: #9ca3af;
+    --slate: #94a3b8;
+
+    /* Typography */
+    --font-heading: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+    --font-body:    'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* Reset & Base Styles */
@@ -40,8 +45,10 @@ html, body {
 body {
     color: var(--foreground);
     background: var(--background);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    font-family: var(--font-body);
+    font-size: 0.9375rem;      /* 15px — slightly larger base */
+    line-height: 1.65;
+    letter-spacing: 0.01em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -101,30 +108,42 @@ a {
     gap: 2rem;
 }
 
-/* Header */
+/* Header — centered layout */
 .header {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem;
+    text-align: center;
+    gap: 0.5rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
 }
 
 .header-title {
-    font-size: 2.25rem;
-    font-weight: bold;
-    background: linear-gradient(to right, #818cf8, #c084fc);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-family: var(--font-heading);
+    font-size: 3.25rem;        /* bigger, more impact */
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+    /* Use a solid bright color that's always visible over the smoke */
+    color: #ffffff;
+    text-shadow:
+        0 0 40px rgba(124, 111, 247, 0.7),
+        0 0 80px rgba(192, 132, 252, 0.4);
 }
 
 .header-subtitle {
-    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--foreground-dim);
+    letter-spacing: 0.02em;
     margin-top: 0.25rem;
 }
 
 .header-actions {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
     display: flex;
     gap: 0.75rem;
 }
@@ -1054,7 +1073,7 @@ a {
     }
 }
 
-/* ===== FLOW FIELD BACKGROUND ===== */
+/* ===== SMOKE / WEBGL BACKGROUND ===== */
 #flow-field-container {
     position: fixed;
     top: 0;
@@ -1070,20 +1089,20 @@ a {
     display: block;
     width: 100%;
     height: 100%;
+    object-fit: cover;
 }
 
-/* ===== GLOWING EFFECT ===== */
+/* ===== GLOWING BORDER EFFECT (applied to glow-card elements) ===== */
 .glow-card {
     position: relative;
 }
 
+/* The pseudo-element glow lives inside .glow-card via the JS-injected .glow-inner::after */
 .glow-wrapper {
     pointer-events: none;
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    opacity: 1;
-    transition: opacity 0.3s;
 }
 
 .glow-inner {
@@ -1101,20 +1120,20 @@ a {
     border: var(--glowingeffect-border-width, 3px) solid transparent;
     background: radial-gradient(circle, #dd7bbb 10%, #dd7bbb00 20%),
                 radial-gradient(circle at 40% 40%, #d79f1e 5%, #d79f1e00 15%),
-                radial-gradient(circle at 60% 60%, #5a922c 10%, #5a922c00 20%), 
+                radial-gradient(circle at 60% 60%, #5a922c 10%, #5a922c00 20%),
                 radial-gradient(circle at 40% 60%, #4c7894 10%, #4c789400 20%),
                 repeating-conic-gradient(
                   from calc(var(--start, 0) * 1deg) at 50% 50%,
                   #dd7bbb 0%,
                   #d79f1e calc(25% / 5),
-                  #5a922c calc(50% / 5), 
+                  #5a922c calc(50% / 5),
                   #4c7894 calc(75% / 5),
                   #dd7bbb calc(100% / 5)
                 );
     background-attachment: fixed;
     opacity: var(--active, 0);
     transition: opacity 0.3s;
-    -webkit-mask-image: linear-gradient(#000, #000), 
+    -webkit-mask-image: linear-gradient(#000, #000),
                         conic-gradient(
                           from calc((var(--start, 0) - var(--spread, 40)) * 1deg),
                           #00000000 0deg,
@@ -1123,7 +1142,7 @@ a {
                         );
     -webkit-mask-clip: padding-box, border-box;
     -webkit-mask-composite: intersect;
-    mask-image: linear-gradient(#000, #000), 
+    mask-image: linear-gradient(#000, #000),
                 conic-gradient(
                   from calc((var(--start, 0) - var(--spread, 40)) * 1deg),
                   #00000000 0deg,
@@ -1132,4 +1151,79 @@ a {
                 );
     mask-clip: padding-box, border-box;
     mask-composite: intersect;
+}
+
+/* ===== NEW TWO-LAYER GLOW STAT CARD ===== */
+.glow-card-outer {
+    position: relative;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 3px;
+    background: rgba(255, 255, 255, 0.04);
+    min-height: 7rem;
+    transition: border-color 0.2s;
+}
+
+.glow-card-outer:hover {
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+.glow-card-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    height: 100%;
+    border-radius: 1.05rem;
+    background: rgba(12, 12, 18, 0.85);
+    backdrop-filter: blur(14px);
+    padding: 1.25rem 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+}
+
+.glow-card-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.07);
+    color: #c084fc;
+}
+
+.glow-card-icon-wrap .icon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.glow-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.glow-card-body .stat-value {
+    font-family: var(--font-heading);
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    /* Solid color that is always visible — no gradient that can vanish */
+    color: #ffffff;
+    text-shadow: 0 0 20px rgba(124, 111, 247, 0.5);
+    margin-bottom: 0.25rem;
+}
+
+.glow-card-body .stat-title {
+    font-family: var(--font-body);
+    font-size: 0.8125rem;
+    color: var(--foreground-dim);  /* bumped from muted for readability */
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }

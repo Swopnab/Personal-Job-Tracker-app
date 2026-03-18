@@ -1,161 +1,111 @@
 /**
- * GlowingEffect - Vanilla JS Implementation
- * Creates animated glowing borders that follow the mouse
+ * GlowingEffect - Vanilla JS Implementation (Enhanced)
+ * Creates animated glowing borders that follow the mouse cursor
  */
 class GlowingEffect {
     constructor(element, options = {}) {
         this.element = element;
         this.config = {
-            blur: options.blur || 0,
-            inactiveZone: options.inactiveZone || 0.01,
-            proximity: options.proximity || 64,
-            spread: options.spread || 40,
-            borderWidth: options.borderWidth || 3,
-            movementDuration: options.movementDuration || 2,
-            disabled: options.disabled || false,
+            blur: options.blur ?? 0,
+            inactiveZone: options.inactiveZone ?? 0.01,
+            proximity: options.proximity ?? 64,
+            spread: options.spread ?? 40,
+            borderWidth: options.borderWidth ?? 3,
+            movementDuration: options.movementDuration ?? 2,
+            disabled: options.disabled ?? false,
         };
 
         this.lastPosition = { x: 0, y: 0 };
         this.animationFrameId = null;
         this.currentAngle = 0;
-        this.targetAngle = 0;
-        this.animationStartTime = null;
 
-        this.init();
+        if (!this.config.disabled) {
+            this._applyCSS();
+            this._bindEvents();
+        }
     }
 
-    init() {
-        if (this.config.disabled) return;
-
-        // Add glow wrapper
-        this.glowWrapper = document.createElement('div');
-        this.glowWrapper.className = 'glow-wrapper';
-
-        this.glowInner = document.createElement('div');
-        this.glowInner.className = 'glow-inner';
-        this.glowWrapper.appendChild(this.glowInner);
-
-        this.element.style.position = 'relative';
-        this.element.appendChild(this.glowWrapper);
-
-        // Set CSS variables
-        this.updateCSSVariables();
-
-        // Bind events
-        this.bindEvents();
-    }
-
-    updateCSSVariables() {
-        this.element.style.setProperty('--blur', `${this.config.blur}px`);
-        this.element.style.setProperty('--spread', this.config.spread);
-        this.element.style.setProperty('--start', '0');
-        this.element.style.setProperty('--active', '0');
-        this.element.style.setProperty('--glowingeffect-border-width', `${this.config.borderWidth}px`);
+    _applyCSS() {
+        const el = this.element;
+        el.style.setProperty('--blur', `${this.config.blur}px`);
+        el.style.setProperty('--spread', this.config.spread);
+        el.style.setProperty('--start', '0');
+        el.style.setProperty('--active', '0');
+        el.style.setProperty('--glowingeffect-border-width', `${this.config.borderWidth}px`);
+        el.style.setProperty('--repeating-conic-gradient-times', '5');
     }
 
     handleMove(e) {
-        if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
-        }
+        if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
 
         this.animationFrameId = requestAnimationFrame(() => {
-            const rect = this.element.getBoundingClientRect();
-            const mouseX = e?.x ?? this.lastPosition.x;
-            const mouseY = e?.y ?? this.lastPosition.y;
+            const el = this.element;
+            const { left, top, width, height } = el.getBoundingClientRect();
+            const mouseX = e?.x ?? e?.clientX ?? this.lastPosition.x;
+            const mouseY = e?.y ?? e?.clientY ?? this.lastPosition.y;
 
-            if (e) {
-                this.lastPosition = { x: mouseX, y: mouseY };
-            }
+            if (e) this.lastPosition = { x: mouseX, y: mouseY };
 
-            const centerX = rect.left + rect.width * 0.5;
-            const centerY = rect.top + rect.height * 0.5;
-
-            const distanceFromCenter = Math.hypot(
-                mouseX - centerX,
-                mouseY - centerY
-            );
-
-            const inactiveRadius = 0.5 * Math.min(rect.width, rect.height) * this.config.inactiveZone;
+            const centerX = left + width * 0.5;
+            const centerY = top + height * 0.5;
+            const distanceFromCenter = Math.hypot(mouseX - centerX, mouseY - centerY);
+            const inactiveRadius = 0.5 * Math.min(width, height) * this.config.inactiveZone;
 
             if (distanceFromCenter < inactiveRadius) {
-                this.element.style.setProperty('--active', '0');
+                el.style.setProperty('--active', '0');
                 return;
             }
 
             const isActive =
-                mouseX > rect.left - this.config.proximity &&
-                mouseX < rect.left + rect.width + this.config.proximity &&
-                mouseY > rect.top - this.config.proximity &&
-                mouseY < rect.top + rect.height + this.config.proximity;
+                mouseX > left - this.config.proximity &&
+                mouseX < left + width + this.config.proximity &&
+                mouseY > top - this.config.proximity &&
+                mouseY < top + height + this.config.proximity;
 
-            this.element.style.setProperty('--active', isActive ? '1' : '0');
-
+            el.style.setProperty('--active', isActive ? '1' : '0');
             if (!isActive) return;
 
-            // Calculate angle
-            this.targetAngle = (180 * Math.atan2(mouseY - centerY, mouseX - centerX)) / Math.PI + 90;
+            const targetAngle =
+                (180 * Math.atan2(mouseY - centerY, mouseX - centerX)) / Math.PI + 90;
 
-            // Smooth animation
-            this.animateAngle();
+            const angleDiff = ((targetAngle - this.currentAngle + 180) % 360) - 180;
+            this._animateAngle(this.currentAngle, this.currentAngle + angleDiff);
         });
     }
 
-    animateAngle() {
+    _animateAngle(startAngle, endAngle) {
         const duration = this.config.movementDuration * 1000;
-        const startAngle = this.currentAngle;
         const startTime = performance.now();
+        const el = this.element;
 
-        const animate = (currentTime) => {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-
-            // Easing function (cubic-bezier approximation)
-            const eased = this.easeOut(progress);
-
-            // Calculate angle difference
-            let angleDiff = this.targetAngle - startAngle;
-            while (angleDiff > 180) angleDiff -= 360;
-            while (angleDiff < -180) angleDiff += 360;
-
-            this.currentAngle = startAngle + angleDiff * eased;
-            this.element.style.setProperty('--start', String(this.currentAngle));
-
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            }
+        const step = (now) => {
+            const t = Math.min((now - startTime) / duration, 1);
+            const eased = 1 - Math.pow(1 - t, 3);
+            this.currentAngle = startAngle + (endAngle - startAngle) * eased;
+            el.style.setProperty('--start', String(this.currentAngle));
+            if (t < 1) requestAnimationFrame(step);
         };
-
-        requestAnimationFrame(animate);
+        requestAnimationFrame(step);
     }
 
-    easeOut(t) {
-        // Approximating cubic-bezier(0.16, 1, 0.3, 1)
-        return 1 - Math.pow(1 - t, 3);
-    }
+    _bindEvents() {
+        this._onPointerMove = (e) => this.handleMove(e);
+        this._onScroll = () => this.handleMove();
 
-    bindEvents() {
-        this.handlePointerMove = (e) => this.handleMove(e);
-        this.handleScroll = () => this.handleMove();
-
-        document.body.addEventListener('pointermove', this.handlePointerMove);
-        window.addEventListener('scroll', this.handleScroll);
+        document.body.addEventListener('pointermove', this._onPointerMove, { passive: true });
+        window.addEventListener('scroll', this._onScroll, { passive: true });
     }
 
     destroy() {
-        document.body.removeEventListener('pointermove', this.handlePointerMove);
-        window.removeEventListener('scroll', this.handleScroll);
-
-        if (this.animationFrameId) {
+        if (this._onPointerMove)
+            document.body.removeEventListener('pointermove', this._onPointerMove);
+        if (this._onScroll)
+            window.removeEventListener('scroll', this._onScroll);
+        if (this.animationFrameId)
             cancelAnimationFrame(this.animationFrameId);
-        }
-
-        if (this.glowWrapper && this.glowWrapper.parentNode) {
-            this.glowWrapper.parentNode.removeChild(this.glowWrapper);
-        }
     }
 }
 
-// Initialize glowing effects on elements
 function initGlowingEffects() {
     const elements = document.querySelectorAll('.glow-card');
     elements.forEach(element => {

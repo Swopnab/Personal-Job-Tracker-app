@@ -101,36 +101,44 @@ function renderDashboard() {
     let html = '<div class="stats-grid">';
 
     // Stat cards
-    html += `
-        <div class="stat-card glass-hover glow-card">
-            <div class="stat-gradient" style="background: linear-gradient(to bottom right, var(--primary), var(--purple));"></div>
-            <div class="stat-content">
-                <p class="stat-title">Total Tracked</p>
-                <p class="stat-value">${stats.total}</p>
+    const statCards = [
+        {
+            icon: `<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>`,
+            label: 'Total Tracked',
+            value: stats.total,
+        },
+        {
+            icon: `<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>`,
+            label: 'Applied',
+            value: stats.statusCounts['Applied'] || 0,
+        },
+        {
+            icon: `<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`,
+            label: 'Interviewing',
+            value: (stats.statusCounts['Phone Screen'] || 0) + (stats.statusCounts['Technical Interview'] || 0) + (stats.statusCounts['Final Round'] || 0),
+        },
+        {
+            icon: `<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>`,
+            label: 'Response Rate',
+            value: `${stats.responseRate}%`,
+        },
+    ];
+
+    statCards.forEach(card => {
+        html += `
+            <div class="glow-card-outer glow-card">
+                <div class="glow-card-inner">
+                    <div class="glow-card-icon-wrap">
+                        ${card.icon}
+                    </div>
+                    <div class="glow-card-body">
+                        <p class="stat-value">${card.value}</p>
+                        <p class="stat-title">${card.label}</p>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="stat-card glass-hover glow-card">
-            <div class="stat-gradient" style="background: linear-gradient(to bottom right, var(--purple), #ec4899);"></div>
-            <div class="stat-content">
-                <p class="stat-title">Applied</p>
-                <p class="stat-value">${stats.statusCounts['Applied'] || 0}</p>
-            </div>
-        </div>
-        <div class="stat-card glass-hover glow-card">
-            <div class="stat-gradient" style="background: linear-gradient(to bottom right, var(--yellow), var(--orange));"></div>
-            <div class="stat-content">
-                <p class="stat-title">Interviewing</p>
-                <p class="stat-value">${(stats.statusCounts['Phone Screen'] || 0) + (stats.statusCounts['Technical Interview'] || 0) + (stats.statusCounts['Final Round'] || 0)}</p>
-            </div>
-        </div>
-        <div class="stat-card glass-hover glow-card">
-            <div class="stat-gradient" style="background: linear-gradient(to bottom right, var(--green), var(--emerald));"></div>
-            <div class="stat-content">
-                <p class="stat-title">Response Rate</p>
-                <p class="stat-value">${stats.responseRate}%</p>
-            </div>
-        </div>
-    `;
+        `;
+    });
 
     html += '</div>';
 
@@ -743,9 +751,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initialize visual effects
-    // Flow field background
-    if (typeof initFlowFieldBackground === 'function') {
-        initFlowFieldBackground();
+    // Smoke WebGL background
+    if (typeof initSmokeBackground === 'function') {
+        initSmokeBackground();
     }
 
     // Glowing effects on stat cards (after dashboard is rendered)
