@@ -39,3 +39,7 @@ next-env.d.ts
 *.swp
 *.swo
 *~
+
+/node_modules/
+/dist-site/
+/test-results/

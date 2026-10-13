@@ -1,3 +1,4 @@
+const {escapeHtml, validateApplications, dateOnly, daysSince} = TrackerData;
 // ===== STATE MANAGEMENT =====
 const STATUS_OPTIONS = [
     "Interested",
@@ -36,13 +37,17 @@ let statusFilter = '';
 
 // ===== LOCALSTORAGE =====
 function saveToLocalStorage() {
-    localStorage.setItem('jobTrackerApplications', JSON.stringify(applications));
+    try { localStorage.setItem('jobTrackerApplications', JSON.stringify(applications)); }
+    catch { showToast('Storage unavailable. Keep this tab open and export a backup.', 'error'); }
 }
 
 function loadFromLocalStorage() {
-    const saved = localStorage.getItem('jobTrackerApplications');
-    if (saved) {
-        applications = JSON.parse(saved);
+    try {
+        const saved = localStorage.getItem('jobTrackerApplications');
+        if (saved) applications = validateApplications(JSON.parse(saved));
+    } catch {
+        applications = [];
+        showToast('Saved data could not be loaded. Your existing browser copy has not been overwritten.', 'error');
     }
 }
 
@@ -53,18 +58,11 @@ function generateId() {
 
 function formatDate(dateString) {
     if (!dateString) return '';
-    const date = new Date(dateString);
+    const date = new Date(dateOnly(dateString)+'T12:00:00');
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function calculateDaysSince(dateString) {
-    if (!dateString) return null;
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-}
+function calculateDaysSince(dateString) { return daysSince(dateString); }
 
 // ===== ANALYTICS =====
 function calculateStats() {
@@ -170,7 +168,7 @@ function renderDashboard() {
                 <p class="follow-up-text">${followUps.length} application${followUps.length !== 1 ? 's' : ''} with no reply for 14+ days</p>
                 <div class="follow-up-list">
                     ${followUps.slice(0, 3).map(app => `
-                        <div class="follow-up-item">• <strong>${app.company}</strong> - ${app.jobTitle}</div>
+                        <div class="follow-up-item">• <strong>${escapeHtml(app.company)}</strong> - ${escapeHtml(app.jobTitle)}</div>
                     `).join('')}
                     ${followUps.length > 3 ? `<div class="follow-up-item" style="color: var(--muted); font-style: italic;">+${followUps.length - 3} more...</div>` : ''}
                 </div>
@@ -289,17 +287,17 @@ function renderTableView() {
         html += `
             <tr>
                 <td><input type="checkbox" class="row-checkbox" data-id="${app.id}" ${selectedIds.has(app.id) ? 'checked' : ''}></td>
-                <td><div class="editable-cell" contenteditable="true" data-id="${app.id}" data-field="company">${app.company || ''}</div></td>
-                <td><div class="editable-cell" contenteditable="true" data-id="${app.id}" data-field="jobTitle">${app.jobTitle || ''}</div></td>
-                <td><div class="editable-cell" contenteditable="true" data-id="${app.id}" data-field="salary">${app.salary || ''}</div></td>
+                <td><div class="editable-cell" contenteditable="true" data-id="${app.id}" data-field="company">${escapeHtml(app.company)}</div></td>
+                <td><div class="editable-cell" contenteditable="true" data-id="${app.id}" data-field="jobTitle">${escapeHtml(app.jobTitle)}</div></td>
+                <td><div class="editable-cell" contenteditable="true" data-id="${app.id}" data-field="salary">${escapeHtml(app.salary)}</div></td>
                 <td>
                     <select class="status-select" data-id="${app.id}" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 0.25rem 0.5rem; border-radius: 0.25rem; color: var(--foreground);">
                         ${STATUS_OPTIONS.map(status => `<option value="${status}" ${app.status === status ? 'selected' : ''}>${status}</option>`).join('')}
                     </select>
                 </td>
-                <td>${app.link ? `<a href="${app.link}" target="_blank" class="cell-link">Link</a>` : '<div class="editable-cell" contenteditable="true" data-id="' + app.id + '" data-field="link"></div>'}</td>
-                <td><input type="date" class="form-input" style="background: transparent; border: none; padding: 0.25rem; font-size: 0.875rem;" data-id="${app.id}" data-field="dateApplied" value="${app.dateApplied ? new Date(app.dateApplied).toISOString().split('T')[0] : ''}"></td>
-                <td><div class="editable-cell" contenteditable="true" data-id="${app.id}" data-field="notes">${app.notes || ''}</div></td>
+                <td>${app.link ? `<a href="${escapeHtml(app.link)}" rel="noopener noreferrer" target="_blank" class="cell-link">Link</a>` : '<div class="editable-cell" contenteditable="true" data-id="' + app.id + '" data-field="link"></div>'}</td>
+                <td><input type="date" class="form-input" style="background: transparent; border: none; padding: 0.25rem; font-size: 0.875rem;" data-id="${app.id}" data-field="dateApplied" value="${app.dateApplied ? dateOnly(app.dateApplied) : ''}"></td>
+                <td><div class="editable-cell" contenteditable="true" data-id="${app.id}" data-field="notes">${escapeHtml(app.notes)}</div></td>
                 <td>
                     <div class="row-actions">
                         <button class="icon-btn delete" onclick="deleteApplication('${app.id}')" title="Delete">
@@ -380,15 +378,7 @@ function renderBoardView() {
     filterApplications();
     const container = document.getElementById('kanban-board');
 
-    const columns = [
-        'Interested',
-        'Applied',
-        'Phone Screen',
-        'Technical Interview',
-        'Final Round',
-        'Offer Received',
-        'Rejected'
-    ];
+    const columns = STATUS_OPTIONS;
 
     let html = '';
     columns.forEach(status => {
@@ -402,9 +392,9 @@ function renderBoardView() {
                 <div class="kanban-cards" data-status="${status}">
                     ${cards.map(app => `
                         <div class="kanban-card" draggable="true" data-id="${app.id}">
-                            <div class="kanban-card-company">${app.company}</div>
-                            <div class="kanban-card-title">${app.jobTitle}</div>
-                            ${app.salary ? `<div class="kanban-card-title">${app.salary}</div>` : ''}
+                            <div class="kanban-card-company">${escapeHtml(app.company)}</div>
+                            <div class="kanban-card-title">${escapeHtml(app.jobTitle)}</div>
+                            ${app.salary ? `<div class="kanban-card-title">${escapeHtml(app.salary)}</div>` : ''}
                             <div class="kanban-card-footer">
                                 <div class="kanban-card-date">${app.dateApplied ? formatDate(app.dateApplied) : 'No date'}</div>
                                 <div class="kanban-card-actions">
@@ -491,7 +481,9 @@ function addNewApplication() {
 function updateApplicationField(id, field, value) {
     const app = applications.find(a => a.id === id);
     if (app) {
-        app[field] = value;
+        if (!['company','jobTitle','salary','notes','link','dateApplied','status'].includes(field)) return;
+        try { Object.assign(app, validateApplications([{...app,[field]:value}])[0]); }
+        catch (error) { showToast(error.message, 'error'); renderCurrentView(); return; }
         app.updatedAt = new Date().toISOString();
         saveToLocalStorage();
         renderCurrentView();
@@ -515,17 +507,19 @@ function bulkDeleteApplications() {
     if (selectedIds.size === 0) return;
     if (!confirm(`Delete ${selectedIds.size} application(s)?`)) return;
 
+    const count = selectedIds.size;
     applications = applications.filter(app => !selectedIds.has(app.id));
     selectedIds.clear();
     saveToLocalStorage();
     renderCurrentView();
     renderDashboard();
     updateBulkActionsBar();
-    showToast(`Deleted ${selectedIds.size} application(s)`, 'success');
+    showToast(`Deleted ${count} application(s)`, 'success');
 }
 
 function bulkUpdateStatus(status) {
-    if (selectedIds.size === 0) return;
+    if (selectedIds.size === 0 || !STATUS_OPTIONS.includes(status)) return;
+    const count = selectedIds.size;
 
     applications.forEach(app => {
         if (selectedIds.has(app.id)) {
@@ -539,7 +533,7 @@ function bulkUpdateStatus(status) {
     renderCurrentView();
     renderDashboard();
     updateBulkActionsBar();
-    showToast(`Updated ${selectedIds.size} application(s)`, 'success');
+    showToast(`Updated ${count} application(s)`, 'success');
 }
 
 // ===== VIEW MANAGEMENT =====
@@ -577,23 +571,18 @@ function exportApplications() {
 }
 
 function importApplications(file) {
+    if (file.size > 10*1024*1024) { showToast('Import is limited to 10 MB.', 'error'); return; }
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = e => {
         try {
-            const imported = JSON.parse(e.target.result);
-            if (Array.isArray(imported)) {
-                applications = imported;
-                saveToLocalStorage();
-                renderCurrentView();
-                renderDashboard();
-                showToast(`Imported ${imported.length} application(s)`, 'success');
-            } else {
-                showToast('Invalid file format', 'error');
-            }
-        } catch (error) {
-            showToast('Error importing file', 'error');
-        }
+            const imported = validateApplications(JSON.parse(e.target.result));
+            applications = imported;
+            selectedIds.clear();
+            saveToLocalStorage(); renderCurrentView(); renderDashboard(); updateBulkActionsBar();
+            showToast(`Imported ${imported.length} application(s)`, 'success');
+        } catch (error) { showToast('Import rejected: '+error.message+'. Existing applications were kept.', 'error'); }
     };
+    reader.onerror = () => showToast('Could not read this file. Existing applications were kept.', 'error');
     reader.readAsText(file);
 }
 
@@ -626,7 +615,7 @@ function showToast(message, type = 'success') {
         ? '<svg class="toast-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>'
         : '<svg class="toast-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>';
 
-    toast.innerHTML = `${icon}<div class="toast-message">${message}</div>`;
+    toast.innerHTML = `${icon}<div class="toast-message">${escapeHtml(message)}</div>`;
     container.appendChild(toast);
 
     setTimeout(() => {
@@ -693,7 +682,8 @@ document.addEventListener('DOMContentLoaded', () => {
             updatedAt: new Date().toISOString()
         };
 
-        applications.unshift(formData);
+        try { applications.unshift(validateApplications([formData])[0]); }
+        catch (error) { showToast(error.message, 'error'); return; }
         saveToLocalStorage();
         renderCurrentView();
         renderDashboard();
