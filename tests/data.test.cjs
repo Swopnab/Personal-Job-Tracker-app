@@ -1,0 +1,6 @@
+const {test}=require('node:test'),assert=require('node:assert/strict');const {validateApplications,daysSince,escapeHtml}=require('../data.js');
+const row={id:'abc_12',company:'Acme',jobTitle:'Intern',status:'Applied',dateApplied:'2026-10-01T23:11:00.000Z',link:'https://example.com'};
+test('legacy exports normalize dates and unknown fields without losing application identity',()=>{const [result]=validateApplications([{...row,extra:'drop'}]);assert.equal(result.id,row.id);assert.equal(result.dateApplied,'2026-10-01');assert.equal(result.extra,undefined);});
+test('invalid imports are rejected before replacing data',()=>{for(const input of [{},[null],[{...row,id:"x');alert(1);//"}],[{...row,link:'javascript:alert(1)'}],[{...row,link:'data:text/html,test'}],[{...row,status:'Unknown'}],[{...row,dateApplied:'2026-02-30'}],[row,row],[{...row,company:{}}]])assert.throws(()=>validateApplications(input));});
+test('HTML fields become literal text',()=>assert.equal(escapeHtml('<img "x" onerror=1>'), '&lt;img &quot;x&quot; onerror=1&gt;'));
+test('follow-up counts use calendar days, not UTC parsing or future absolute differences',()=>{assert.equal(daysSince('2026-10-01',new Date(2026,9,15,8)),14);assert.equal(daysSince('2026-10-16',new Date(2026,9,15)),0);assert.equal(daysSince('',new Date()),null);});
