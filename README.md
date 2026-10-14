@@ -1,6 +1,6 @@
 # Personal Job Tracker
 
-A browser-local application tracker with inline editing, table and board views, search/filtering, follow-up reminders, bulk actions, and JSON backup/import. It has no backend, login, shared accounts, or cross-device synchronization.
+A responsive personal job tracker with a light green workspace, application summaries, a focused add/edit dialog, list and board views, search/stage filters, sorting, follow-ups, bulk actions, and JSON backup/import. It has no backend, login, shared accounts, or cross-device synchronization.
 
 ## Run and verify
 
@@ -27,3 +27,13 @@ Tests cover CRUD and reload persistence, valid/invalid imports, literal HTML pay
 ## Next evaluation
 
 Ask consenting student testers to add, update, find and export a few applications. Record task completion, failures and feedback without collecting their private application data. Keep this as a focused local tracker; the more complex application workflow lives in WorkLikeADog (`Swopnab/worklikejeff`).
+
+## Redesigned workspace
+
+Add an application with the main button or Cmd/Ctrl+K. Use the pencil button to edit all details, including dates, salary and notes. Search also matches notes; sort by recent changes, company or applied date. Follow-ups show only Applied/No Reply records dated at least 14 calendar days ago. No reminders are sent externally.
+
+The list becomes compact application cards on phones. The board scrolls within its panel and includes all 11 stages; a stage dropdown lets touch and keyboard users move cards without dragging. Native dialogs provide keyboard focus containment, Escape-to-close and focus restoration. Import asks before replacing existing data. Existing browser storage and old JSON exports remain compatible.
+
+The same UI is integrated into [WorkLikeADog](https://github.com/Swopnab/worklikejeff) under Job Tracker. There it uses the Python app's local SQLite database and can copy application history without changing preparation/submission states. The standalone app and public Pages demo remain browser-local; export/import a backup to move between these modes. They share the original storage key when served from the same browser origin.
+
+No new runtime dependency or paid service was added. Tests exercise 390px, 768px and 1440px synthetic browser layouts; physical device testing remains separate.
