@@ -43,3 +43,16 @@ next-env.d.ts
 /node_modules/
 /dist-site/
 /test-results/
+
+# Generated hosting bundle and one-time import intermediates
+/dist/
+/*-import.json
+
+# Private device-only data and credentials
+/.local-data/
+/local-settings.json
+/credentials.json
+/token.json
+/venv/
+/.venv/
+/private-*/
