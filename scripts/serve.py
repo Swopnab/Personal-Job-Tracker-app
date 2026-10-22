@@ -3,7 +3,10 @@
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import urlsplit
-import json
+import argparse
+import sys
+import threading
+import webbrowser
 ROOT=Path(__file__).resolve().parent.parent
 ASSETS={'index.html':'text/html; charset=utf-8','app.js':'text/javascript; charset=utf-8','data.js':'text/javascript; charset=utf-8','sync.js':'text/javascript; charset=utf-8','style.css':'text/css; charset=utf-8','catalog.json':'application/json','applications.json':'application/json'}
 class Handler(BaseHTTPRequestHandler):
@@ -19,6 +22,32 @@ class Handler(BaseHTTPRequestHandler):
   except OSError:self.send_error(404);return
   self.send_response(200);self.send_header('Content-Type',ASSETS[name]);self.send_header('Content-Length',str(len(data)));self.send_header('Cache-Control','no-store');self.send_header('X-Content-Type-Options','nosniff');self.send_header('Content-Security-Policy',"default-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'");self.end_headers();self.wfile.write(data)
  def log_message(self,*args):pass
-if __name__=='__main__':
- print('Local tracker: http://127.0.0.1:8000 (Ctrl+C to stop)',flush=True)
- ThreadingHTTPServer(('127.0.0.1',8000),Handler).serve_forever()
+def main():
+ parser=argparse.ArgumentParser(description='Run the tracker privately on this computer.')
+ parser.add_argument('--port',type=int,default=8000,help='Preferred local port (default: 8000).')
+ parser.add_argument('--open',action='store_true',help='Open the tracker in the default browser after startup.')
+ args=parser.parse_args()
+ if not 0<=args.port<=65535:parser.error('port must be between 0 and 65535')
+ server=None
+ ports=[0] if args.port==0 else range(args.port,min(args.port+10,65536))
+ for port in ports:
+  try:
+   server=ThreadingHTTPServer(('127.0.0.1',port),Handler);break
+  except OSError as exc:
+   if exc.errno not in (48,98):
+    print('Could not start the tracker: '+str(exc),file=sys.stderr);return 1
+ if server is None:
+  print('No free local port found. Try: python3 scripts/serve.py --port 8100 --open',file=sys.stderr);return 1
+ url='http://127.0.0.1:'+str(server.server_port)+'/'
+ print('Local tracker: '+url,flush=True)
+ print('Keep this Terminal window open. Press Ctrl+C to stop.',flush=True)
+ private=ROOT/'.local-data'
+ if not (private/'applications.json').is_file():
+  print('No private snapshot found. Use the local ZIP with its .local-data folder, or import a backup in the app.',flush=True)
+ if args.open:
+  threading.Timer(0.3,lambda:webbrowser.open(url)).start()
+ try:server.serve_forever()
+ except KeyboardInterrupt:print('\nTracker stopped.',flush=True)
+ finally:server.server_close()
+ return 0
+if __name__=='__main__':sys.exit(main())

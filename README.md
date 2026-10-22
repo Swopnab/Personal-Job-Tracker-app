@@ -4,13 +4,15 @@ A clean, responsive job tracker. The public repository contains code and empty d
 
 ## Run locally
 
-Python 3 is enough to run the app:
+On macOS, double-click `Start-Tracker.command`. It starts the local server and opens your browser. Keep its Terminal window open while using the tracker.
+
+Or run it from the extracted project folder with Python 3:
 
 ```sh
-python3 scripts/serve.py
+python3 scripts/serve.py --open
 ```
 
-Open http://127.0.0.1:8000. Optional Node tools: `npm ci`, `npm test`, `npm run build`. The build contains only empty public templates, never `.local-data`.
+Use the address printed in Terminal. It normally uses http://127.0.0.1:8000/ and automatically picks the next port if that one is occupied. Opening a localhost URL alone does not start the app. Optional Node tools: `npm ci`, `npm test`, `npm run build`. The build contains only empty public templates, never `.local-data`.
 
 ## Private data
 
