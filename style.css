@@ -7,3 +7,5 @@
 /* Keep horizontal lists and the table inside their mobile scroll regions. */
 .table-scroll{width:100%;contain:inline-size}
 @media(max-width:800px){.workspace,main,.sidebar{max-width:100%;min-width:0}.sidebar{overflow-x:hidden}.sidebar nav{width:100%;min-width:0;contain:inline-size}main{overflow-x:hidden}}
+/* Anchor visually hidden table/board labels inside their scroll container. */
+.table-scroll,.board{position:relative}
