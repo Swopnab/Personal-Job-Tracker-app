@@ -41,6 +41,14 @@
         const today = Date.UTC(now.getFullYear(),now.getMonth(),now.getDate());
         return Math.max(0,Math.floor((today-Date.parse(day+'T00:00:00Z'))/86400000));
     }
-    const api = {statuses,escapeHtml,dateOnly,safeLink,validateApplications,daysSince};
+    function jobLocation(job={}) {
+        const location=String(job.location||'').trim();
+        const dfw=/\b(dallas|fort[ -]?worth|dfw|plano|irving|richardson|frisco|mckinney|carrollton|addison|grapevine|southlake|coppell|lewisville|denton|westlake|roanoke|allen|garland|mesquite|the colony)\b/i.test(location) || /arlington.*(?:TX|Texas)/i.test(location);
+        const texas=dfw||/\b(TX|Texas|Austin|Houston|San Antonio)\b/i.test(location);
+        const explicit=String(job.workArrangement||'');
+        const arrangement=['Onsite','Hybrid','Remote'].includes(explicit)?explicit:/\bhybrid\b/i.test(location)?'Hybrid':/\bremote\b|home office/i.test(location)?'Remote':/\bon[ -]?site\b/i.test(location)?'Onsite':'Unknown';
+        return {location,dfw,region:dfw?'dfw':texas?'texas':!location||/^(see posting|USA|United States)$/i.test(location)?'unknown':'other',arrangement};
+    }
+    const api = {jobLocation,statuses,escapeHtml,dateOnly,safeLink,validateApplications,daysSince};
     if (typeof module !== 'undefined') module.exports = api; else root.TrackerData = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

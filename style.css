@@ -9,3 +9,6 @@
 @media(max-width:800px){.workspace,main,.sidebar{max-width:100%;min-width:0}.sidebar{overflow-x:hidden}.sidebar nav{width:100%;min-width:0;contain:inline-size}main{overflow-x:hidden}}
 /* Anchor visually hidden table/board labels inside their scroll container. */
 .table-scroll,.board{position:relative}
+
+/* Location controls stay usable on small screens. */
+#location-filter{min-width:140px;max-width:220px;padding:10px 12px;border:1px solid var(--border,#ddd);border-radius:8px;background:transparent;color:inherit}.toolbar{flex-wrap:wrap}
