@@ -9,7 +9,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import urllib.request
+
 
 import manage
 ROOT = manage.ROOT
@@ -34,9 +34,12 @@ def require_clean():
 
 def require_ci(sha):
     url = f'https://api.github.com/repos/{REPOSITORY}/actions/workflows/ci.yml/runs?head_sha={sha}&event=push&per_page=100'
-    request = urllib.request.Request(url, headers={'Accept': 'application/vnd.github+json', 'User-Agent': 'local-job-tracker'})
-    with urllib.request.urlopen(request, timeout=30) as response:
-        runs = json.load(response)['workflow_runs']
+    # curl uses the OS trust store on macOS, including machines whose standalone
+    # Python installation lacks its certificate bundle. TLS verification stays on.
+    response = subprocess.check_output(['curl', '--fail', '--silent', '--show-error',
+        '--max-time', '30', '-H', 'Accept: application/vnd.github+json',
+        '-H', 'User-Agent: local-job-tracker', url], text=True)
+    runs = json.loads(response)['workflow_runs']
     runs = sorted((r for r in runs if r['head_sha'] == sha and r['head_branch'] == 'main'),
                   key=lambda r: (r['run_number'], r.get('run_attempt', 1)), reverse=True)
     if not runs or runs[0]['status'] != 'completed' or runs[0]['conclusion'] != 'success':

@@ -9,9 +9,8 @@ import update
 class UpdateSafety(unittest.TestCase):
     def test_ci_rejects_missing_pending_failed_or_other_branch_runs(self):
         for runs in [[], [{'head_sha':'abc','head_branch':'other','run_number':1,'status':'completed','conclusion':'success'}], [{'head_sha':'abc','head_branch':'main','run_number':1,'status':'in_progress','conclusion':None}], [{'head_sha':'abc','head_branch':'main','run_number':1,'status':'completed','conclusion':'failure'}]]:
-            response=MagicMock()
-            response.__enter__.return_value.read.return_value=__import__('json').dumps({'workflow_runs':runs})
-            with patch('urllib.request.urlopen',return_value=response):
+            response=__import__('json').dumps({'workflow_runs':runs})
+            with patch('subprocess.check_output',return_value=response):
                 with self.assertRaises(RuntimeError):update.require_ci('abc')
 
     def test_clean_worktree_required(self):
@@ -19,9 +18,8 @@ class UpdateSafety(unittest.TestCase):
             with self.assertRaises(RuntimeError):update.require_clean()
 
     def test_successful_exact_sha_is_accepted(self):
-        response=MagicMock()
-        response.__enter__.return_value.read.return_value=__import__('json').dumps({'workflow_runs':[{'head_sha':'abc','head_branch':'main','run_number':1,'status':'completed','conclusion':'success'}]})
-        with patch('urllib.request.urlopen',return_value=response):update.require_ci('abc')
+        response=__import__('json').dumps({'workflow_runs':[{'head_sha':'abc','head_branch':'main','run_number':1,'status':'completed','conclusion':'success'}]})
+        with patch('subprocess.check_output',return_value=response):update.require_ci('abc')
 
 if __name__=='__main__':unittest.main()
 

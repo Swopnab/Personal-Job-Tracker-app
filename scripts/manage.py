@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PRIVATE = ROOT / '.local-data'
 STATE = PRIVATE / 'runtime.json'
 SERVER = str(ROOT / 'scripts/serve.py')
+_CHILDREN = {}
 
 
 def read_state():
@@ -49,6 +50,9 @@ def stop():
             time.sleep(.1)
         else:
             raise RuntimeError('Tracker did not stop; no other process was killed.')
+    child = _CHILDREN.pop(state.get('pid'), None)
+    if child is not None:
+        child.wait(timeout=5)
     STATE.unlink(missing_ok=True)
 
 
@@ -67,6 +71,7 @@ def start(port=None):
         if process.poll() is not None:
             raise RuntimeError('Startup failed. Check .local-data/server.log. The port may be occupied; no existing process was stopped.')
         if healthy(port):
+            _CHILDREN[process.pid] = process
             STATE.write_text(json.dumps({'pid': process.pid, 'port': port}))
             STATE.chmod(0o600)
             return port
