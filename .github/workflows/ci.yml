@@ -1,9 +1,16 @@
-name: Browser regression tests
-on: [push, pull_request]
+name: Tracker CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: tracker-ci-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   test:
+    name: Privacy, unit, local server and browser checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -11,6 +18,10 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - run: npm ci
       - run: npx playwright install chromium --only-shell --with-deps
       - run: npm test
+      - run: npm run build

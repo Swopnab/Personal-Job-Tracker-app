@@ -4,6 +4,7 @@ from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import urlsplit
 import argparse
+import json
 import sys
 import threading
 import webbrowser
@@ -14,6 +15,9 @@ class Handler(BaseHTTPRequestHandler):
   if urlsplit('http://'+self.headers.get('Host','')).hostname not in ('127.0.0.1','localhost'):
    self.send_error(403);return
   name=urlsplit(self.path).path.lstrip('/') or 'index.html'
+  if name=='health.json':
+   data=json.dumps({'tracker':str(ROOT)}).encode()
+   self.send_response(200);self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(data)));self.send_header('Cache-Control','no-store');self.end_headers();self.wfile.write(data);return
   if name not in ASSETS:
    self.send_error(404);return
   path=ROOT/name
@@ -26,10 +30,11 @@ def main():
  parser=argparse.ArgumentParser(description='Run the tracker privately on this computer.')
  parser.add_argument('--port',type=int,default=8000,help='Preferred local port (default: 8000).')
  parser.add_argument('--open',action='store_true',help='Open the tracker in the default browser after startup.')
+ parser.add_argument('--strict-port',action='store_true',help='Fail if the selected port is occupied, preserving the browser storage origin.')
  args=parser.parse_args()
  if not 0<=args.port<=65535:parser.error('port must be between 0 and 65535')
  server=None
- ports=[0] if args.port==0 else range(args.port,min(args.port+10,65536))
+ ports=[args.port] if args.strict_port else [0] if args.port==0 else range(args.port,min(args.port+10,65536))
  for port in ports:
   try:
    server=ThreadingHTTPServer(('127.0.0.1',port),Handler);break

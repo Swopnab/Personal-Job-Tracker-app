@@ -56,3 +56,15 @@ next-env.d.ts
 /venv/
 /.venv/
 /private-*/
+
+/.local-backups/
+.env*
+credentials*.json
+token*.json
+*.sqlite
+*.sqlite3
+*.db
+*.mbox
+*.eml
+*.key
+__pycache__/
