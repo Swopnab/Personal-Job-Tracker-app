@@ -8,13 +8,42 @@ import json
 import sys
 import threading
 import webbrowser
+import importlib.util
+_spec=importlib.util.spec_from_file_location("tracker_workspace",Path(__file__).with_name("workspace.py"))
+workspace=importlib.util.module_from_spec(_spec);_spec.loader.exec_module(workspace)
 ROOT=Path(__file__).resolve().parent.parent
 ASSETS={'index.html':'text/html; charset=utf-8','app.js':'text/javascript; charset=utf-8','data.js':'text/javascript; charset=utf-8','sync.js':'text/javascript; charset=utf-8','style.css':'text/css; charset=utf-8','catalog.json':'application/json','applications.json':'application/json'}
 class Handler(BaseHTTPRequestHandler):
+ def allowed(self):
+  host=urlsplit('http://'+self.headers.get('Host','')).hostname
+  return host in ('127.0.0.1','localhost')
+ def respond_json(self,data,status=200):
+  body=json.dumps(data).encode();self.send_response(status);self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(body)));self.send_header('Cache-Control','no-store');self.send_header('X-Content-Type-Options','nosniff');self.end_headers();self.wfile.write(body)
+ def do_PUT(self):
+  origin=self.headers.get('Origin')
+  expected='http://'+self.headers.get('Host','')
+  if not self.allowed() or (origin and origin!=expected):
+   self.send_error(403);return
+  if urlsplit(self.path).path!='/api/workspace':
+   self.send_error(404);return
+  if self.headers.get('Content-Type','').split(';')[0]!='application/json':
+   self.send_error(415);return
+  try:
+   length=int(self.headers.get('Content-Length','0'))
+   if not 0<length<=10*1024*1024:raise ValueError('Invalid request size')
+   payload=json.loads(self.rfile.read(length))
+   self.respond_json(workspace.save(ROOT,payload))
+  except FileExistsError as error:self.respond_json({'detail':str(error)},409)
+  except (ValueError,TypeError,KeyError):self.respond_json({'detail':'Invalid application data; existing records were kept.'},400)
+  except OSError:self.respond_json({'detail':'Could not save local data. Please export a backup.'},500)
  def do_GET(self):
   if urlsplit('http://'+self.headers.get('Host','')).hostname not in ('127.0.0.1','localhost'):
    self.send_error(403);return
   name=urlsplit(self.path).path.lstrip('/') or 'index.html'
+  if name=='api/workspace':
+   try:self.respond_json(workspace.read(ROOT))
+   except (OSError,ValueError,KeyError):self.respond_json({'detail':'Saved workspace could not be read; export your browser backup.'},500)
+   return
   if name=='health.json':
    data=json.dumps({'tracker':str(ROOT)}).encode()
    self.send_response(200);self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(data)));self.send_header('Cache-Control','no-store');self.end_headers();self.wfile.write(data);return

@@ -23,12 +23,15 @@
             ids.add(row.id);
             if (!statuses.includes(row.status)) throw new Error('Invalid application status');
             const result = {id:row.id,status:row.status,dateApplied:dateOnly(row.dateApplied),link:safeLink(row.link)};
-            for (const key of ['company','jobTitle','salary','notes']) {
+            for (const key of ['company','jobTitle','salary','notes','location','term','requisition']) {
+                if (['location','term','requisition'].includes(key) && !(key in row)) continue;
                 const value = row[key] ?? '';
                 if (typeof value !== 'string' || value.length > (key==='notes'?10000:500)) throw new Error('Invalid '+key);
                 result[key] = value;
             }
-            for (const key of ['createdAt','updatedAt']) if (row[key]) {
+            if ('starred' in row) {if (typeof row.starred!=='boolean') throw new Error('Invalid saved flag');result.starred=row.starred;}
+            if ('workArrangement' in row) {if (!['','Unknown','Onsite','Hybrid','Remote'].includes(row.workArrangement)) throw new Error('Invalid work arrangement');result.workArrangement=row.workArrangement;}
+            for (const key of ['createdAt','updatedAt','statusUpdatedAt']) if (row[key]) {
                 if (typeof row[key] !== 'string' || !Number.isFinite(Date.parse(row[key]))) throw new Error('Invalid timestamp');
                 result[key] = new Date(row[key]).toISOString();
             }

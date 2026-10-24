@@ -31,6 +31,7 @@ class ManagedLifecycle(unittest.TestCase):
             root=Path(directory).resolve()
             (root/'scripts').mkdir()
             shutil.copyfile(manage.SERVER,root/'scripts/serve.py')
+            shutil.copyfile(Path(manage.SERVER).with_name('workspace.py'),root/'scripts/workspace.py')
             private=root/'.local-data'
             private.mkdir()
             snapshot=private/'applications.json'

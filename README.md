@@ -57,3 +57,17 @@ npm run import:mail -- .local-data/reviewed-updates.json
 ```
 
 The importer validates the entire batch, deduplicates by SHA-256 Gmail message ID, merges exact company/role matches with existing application IDs, preserves notes and newer manual statuses, records one event per new message, backs up the previous snapshot and writes atomically. Use the existing exact ID for known roles; confirm ambiguous or distinct requisitions manually. Raw Gmail IDs are not saved in the snapshot. Refresh the sidebar to load new updates. See AGENTS.md for the standing local-update and scan workflows.
+
+## Shared local editing and research
+
+When served with `scripts/serve.py`, `/api/workspace` keeps manual statuses, notes, stars and location/term edits in ignored `.local-data/workspace.json`. The local server validates records, saves atomically, backs up previous revisions and rejects stale updates with HTTP 409. Writes require JSON and a matching browser Origin; private source paths remain outside the asset allowlist. A static copy falls back to browser storage. Keep the same localhost address and refresh after command-line or Gmail imports.
+
+The interface separates reviewed, not-yet-applied opportunities from confirmed applications. Extra research and archive views are under More. Filters cover work arrangement, region/city, role focus, term, saved roles and authorization evidence; unknown authorization is never presented as CPT approval. Private catalog metadata may include a profile summary and a sourced university-policy notice. Root templates remain empty.
+
+After an actual application or decision, a local status can be updated without opening an employer website:
+
+```sh
+npm run mark -- --id exact-application-id --status Applied --date 2027-01-15
+```
+
+Or use both `--company` and `--role` for an exact unique match. Ambiguous matches stop rather than guessing. The command talks only to this installation's running localhost API. It does not submit applications or contact Gmail. Refresh the tracker after it succeeds. New employer events are compared against status timestamps; note/bookmark changes do not override a later email decision. Distinct known requisitions remain separate.

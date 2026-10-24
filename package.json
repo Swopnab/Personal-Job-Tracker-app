@@ -3,7 +3,7 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "test": "node scripts/check-private.cjs && node scripts/check-data.cjs && node --test tests/*.test.cjs && python3 -m unittest discover -s tests -p \"test_*.py\" && node tests/browser.cjs",
+    "test": "node scripts/check-private.cjs && node scripts/check-data.cjs && node --test tests/*.test.cjs && python3 -m unittest discover -s tests -p \"test_*.py\" && node tests/browser.cjs && node tests/workspace-browser.cjs",
     "start": "python3 scripts/serve.py",
     "build": "node scripts/build.cjs",
     "check:data": "node scripts/check-data.cjs",
@@ -12,7 +12,8 @@
     "stop:local": "python3 scripts/manage.py stop",
     "update:local": "python3 scripts/update.py",
     "check:private": "node scripts/check-private.cjs",
-    "import:mail": "node scripts/import-mail.cjs"
+    "import:mail": "node scripts/import-mail.cjs",
+    "mark": "python3 scripts/mark.py"
   },
   "devDependencies": {
     "playwright": "^1.63.0"

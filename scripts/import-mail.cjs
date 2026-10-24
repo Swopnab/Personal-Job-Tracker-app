@@ -23,7 +23,7 @@ function mergeBatch(snapshot,batch){
   const matches=exact?[exact]:items.filter(r=>normalize(r.company)===normalize(a.company)&&normalize(r.jobTitle)===normalize(a.jobTitle));
   if(matches.length>1)throw Error('Ambiguous application match; use the existing unique ID and resolve duplicate roles before importing');
   const old=matches[0],id=old?.id||a.id;
-  const incoming={...a,id,notes:old?.notes||'',updatedAt:update.at};
+  const incoming={...a,id,notes:old?.notes||'',updatedAt:update.at,statusUpdatedAt:update.at};
   items=mergeApplications(items,[incoming]);
   events.push({applicationId:id,company:a.company,jobTitle:a.jobTitle,status:a.status,at:update.at,summary:update.summary});
   hashes.add(hash);imported++;
