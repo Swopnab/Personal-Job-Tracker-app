@@ -63,6 +63,16 @@
         const title=String(job.jobTitle||'');
         return /machine learning|AI[ /&-]|computer vision/i.test(title)?'ai':/data engineer|data scien|analytics/i.test(title)?'data':/full[ -]?stack|front[ -]?end|web develop|mobile app/i.test(title)?'fullstack':/software|back[ -]?end|developer/i.test(title)?'software':'';
     }
-    const api = {jobTerm,roleFocus,jobLocation,statuses,escapeHtml,dateOnly,safeLink,validateApplications,daysSince};
+    function opportunityRank(job={}) {
+        const geo=jobLocation(job);
+        return geo.dfw?0:geo.arrangement==='Remote'?1:2;
+    }
+    function hasInternationalEvidence(job={}) {
+        return ['cpt','f1','sponsorship'].includes(job.internationalStatus) && Boolean(job.internationalEvidenceUrl) && job.degreeCheck!=='incompatible' && job.authStatus!=='excluded';
+    }
+    function internationalLabel(job={}) {
+        return ({cpt:'F-1 CPT stated',f1:'F-1 stated · confirm CPT',sponsorship:'Visa support · confirm CPT'})[job.internationalStatus]||'';
+    }
+    const api = {opportunityRank,hasInternationalEvidence,internationalLabel,jobTerm,roleFocus,jobLocation,statuses,escapeHtml,dateOnly,safeLink,validateApplications,daysSince};
     if (typeof module !== 'undefined') module.exports = api; else root.TrackerData = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
