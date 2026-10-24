@@ -1,18 +1,14 @@
-const {test}=require('node:test'),assert=require('node:assert/strict'),{execFileSync}=require('node:child_process'),path=require('node:path');
-test('local server substitutes private data and denies source, credentials and foreign hosts',()=>{
-const result=execFileSync('python3',['-c',`
-import importlib.util,tempfile,pathlib,json,threading,urllib.request,urllib.error
-spec=importlib.util.spec_from_file_location('local_server','scripts/serve.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
-with tempfile.TemporaryDirectory() as d:
- m.ROOT=pathlib.Path(d);(m.ROOT/'.local-data').mkdir();(m.ROOT/'applications.json').write_text('{"items":[]}');(m.ROOT/'.local-data/applications.json').write_text('{"items":[{"company":"PRIVATE_FIXTURE"}]}');(m.ROOT/'.env').write_text('SECRET_FIXTURE');(m.ROOT/'index.html').write_text('<h1>Fixture</h1>')
- server=m.ThreadingHTTPServer(('127.0.0.1',0),m.Handler);threading.Thread(target=server.serve_forever,daemon=True).start();url='http://127.0.0.1:'+str(server.server_port)
- assert json.load(urllib.request.urlopen(url+'/applications.json'))['items'][0]['company']=='PRIVATE_FIXTURE'
- for route in ['/.local-data/applications.json','/.env','/.git/config','/../.local-data/applications.json','/scripts/serve.py']:
-  try:urllib.request.urlopen(url+route);raise AssertionError('private route leaked')
-  except urllib.error.HTTPError as e:assert e.code==404
- try:urllib.request.urlopen(urllib.request.Request(url+'/applications.json',headers={'Host':'external.invalid'}));raise AssertionError('foreign host accepted')
- except urllib.error.HTTPError as e:assert e.code==403
- server.shutdown();server.server_close()
-print('PASS')
-`],{cwd:path.resolve(__dirname,'..'),encoding:'utf8'});assert.match(result,/PASS/);
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),http=require('node:http');
+const {createTrackerServer,listen}=require('../scripts/serve.cjs');
+function raw(url,headers){return new Promise((resolve,reject)=>{http.get(url,{headers},response=>{response.resume();response.on('end',()=>resolve(response.statusCode));}).on('error',reject);});}
+test('local server substitutes private data and denies private paths and foreign hosts',async()=>{
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'tracker-privacy-'));let server;
+ try{
+  await fs.mkdir(path.join(root,'.local-data'));await fs.writeFile(path.join(root,'applications.json'),'{"items":[]}');await fs.writeFile(path.join(root,'.local-data/applications.json'),'{"items":[{"company":"PRIVATE_FIXTURE"}]}');await fs.writeFile(path.join(root,'.env'),'SECRET_FIXTURE');await fs.writeFile(path.join(root,'index.html'),'<h1>Fixture</h1>');
+  server=createTrackerServer(root);const port=await listen(server,0),url=`http://127.0.0.1:${port}`;
+  assert.equal((await(await fetch(url+'/applications.json')).json()).items[0].company,'PRIVATE_FIXTURE');
+  for(const route of ['/.local-data/applications.json','/.env','/.git/config','/../.local-data/applications.json','/scripts/serve.cjs'])assert.equal((await fetch(url+route)).status,404);
+  assert.equal(await raw(url+'/applications.json',{Host:'external.invalid'}),403);
+  assert.equal((await(await fetch(url+'/health.json')).json()).runtime,'node');
+ }finally{if(server){server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}await fs.rm(root,{recursive:true,force:true});}
 });
