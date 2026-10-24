@@ -24,6 +24,11 @@ function mergeBatch(snapshot,batch){
   if(matches.length>1)throw Error('Ambiguous application match; use the existing unique ID and resolve duplicate roles before importing');
   const old=matches[0],id=old?.id||a.id;
   const incoming={...a,id,notes:old?.notes||'',updatedAt:update.at,statusUpdatedAt:update.at};
+  // Automated acknowledgments can arrive after a decision. They do not reopen the same application.
+  if(old&&a.status==='Applied'&&['Rejected','Accepted','Withdrawn'].includes(old.status)){
+   incoming.status=old.status;
+   incoming.statusUpdatedAt=old.statusUpdatedAt||old.updatedAt||old.createdAt;
+  }
   items=mergeApplications(items,[incoming]);
   events.push({applicationId:id,company:a.company,jobTitle:a.jobTitle,status:a.status,at:update.at,summary:update.summary});
   hashes.add(hash);imported++;
