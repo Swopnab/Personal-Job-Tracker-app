@@ -1,6 +1,15 @@
 (function (root) {
-    const statuses = ['Interested','Applied','Phone Screen','Technical Interview','Final Round','Offer Received','Accepted','Rejected','No Reply','Ghosted','Withdrawn'];
+    const statuses = ['Interested','Applied','OA','Interview','Phone Screen','Technical Interview','Final Round','Offer Received','Accepted','Rejected','No Reply','Ghosted','Withdrawn'];
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+    function applicationBucket(row={}) { return row.status==='Interested'?'available':'applied'; }
+    function applicationStage(row={}) {
+        if(row.status==='Applied')return 'applied';
+        if(['OA','Assessment'].includes(row.status))return 'oa';
+        if(['Interview','Phone Screen','Technical Interview','Final Round'].includes(row.status))return 'interview';
+        if(['Offer Received','Accepted'].includes(row.status))return 'accepted';
+        if(row.status==='Rejected')return 'rejected';
+        return 'other';
+    }
     function dateOnly(value) {
         if (!value) return '';
         if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(value)) throw new Error('Invalid application date');
@@ -88,6 +97,6 @@
         const missing=requirements.filter(([,pattern])=>!pattern.test(String(resumeText))).map(([name])=>name);
         return {score:requirements.length>=3?Math.round(100*matched.length/requirements.length):null,matched,missing,total:requirements.length,method:'Detected technical skills are weighted equally. Requirements and preferences are not distinguished. This is keyword coverage, not an employer ATS score or hiring probability.'};
     }
-    const api = {resumeSkillMatch,opportunityRank,hasInternationalEvidence,internationalLabel,jobTerm,roleFocus,jobLocation,statuses,escapeHtml,dateOnly,safeLink,validateApplications,daysSince};
+    const api = {applicationBucket,applicationStage,resumeSkillMatch,opportunityRank,hasInternationalEvidence,internationalLabel,jobTerm,roleFocus,jobLocation,statuses,escapeHtml,dateOnly,safeLink,validateApplications,daysSince};
     if (typeof module !== 'undefined') module.exports = api; else root.TrackerData = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
