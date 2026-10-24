@@ -30,6 +30,9 @@ function createTrackerServer(root=ROOT,{owner=''}={}){
    try{return sendJson(response,workspace.read(root));}catch{return sendJson(response,{detail:'Saved workspace could not be read. Export a backup before editing.'},500);}
   }
   const name=route==='/'?'index.html':route.slice(1);
+  if(name==='research.xlsx'){
+   try{const data=fs.readFileSync(path.join(root,'.local-data/research.xlsx'));response.writeHead(200,{'Content-Type':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Content-Length':data.length,'Content-Disposition':'attachment; filename="Summer-2027-Internships.xlsx"','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});response.end(request.method==='HEAD'?undefined:data);}catch{sendJson(response,{detail:'Research workbook not available'},404);}return;
+  }
   if(!Object.hasOwn(ASSETS,name))return sendJson(response,{detail:'Not found'},404);
   let file=path.join(root,name);
   if(['applications.json','catalog.json'].includes(name)&&fs.existsSync(path.join(root,'.local-data',name)))file=path.join(root,'.local-data',name);

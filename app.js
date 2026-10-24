@@ -39,6 +39,9 @@ async function load(){
   if(firstLoad&&catalog.jobs.length){browseMode='opportunities';firstLoad=false;}
   if(catalog.notice){$('research-notice').hidden=false;$('research-notice-text').textContent=catalog.notice.text;$('research-notice-link').href=TrackerData.safeLink(catalog.notice.url);}
   $('research-summary').textContent=catalog.profileSummary||'Summer 2027 · DFW first · remote, hybrid and onsite';
+  let researchDownload=$('research-download');
+  if(!researchDownload){researchDownload=document.createElement('a');researchDownload.id='research-download';researchDownload.className='text-btn';researchDownload.href='./research.xlsx';researchDownload.download='Summer-2027-Internships.xlsx';researchDownload.textContent='↓ Excel list';$('export-btn').before(researchDownload);}
+  researchDownload.hidden=catalog.research?.workbookAvailable!==true;
  }catch(error){applications=local;warning('Local data could not be loaded. Your browser data is still available.');$('sync-state').textContent='Refresh unavailable';}
  setBusy(false);render();
 }

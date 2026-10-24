@@ -10,5 +10,9 @@ test('local server substitutes private data and denies private paths and foreign
   for(const route of ['/.local-data/applications.json','/.env','/.git/config','/../.local-data/applications.json','/scripts/serve.cjs'])assert.equal((await fetch(url+route)).status,404);
   assert.equal(await raw(url+'/applications.json',{Host:'external.invalid'}),403);
   assert.equal((await(await fetch(url+'/health.json')).json()).runtime,'node');
+  assert.equal((await fetch(url+'/research.xlsx')).status,404);
+  await fs.writeFile(path.join(root,'.local-data/research.xlsx'),'WORKBOOK_FIXTURE');
+  const workbook=await fetch(url+'/research.xlsx');assert.equal(await workbook.text(),'WORKBOOK_FIXTURE');assert.match(workbook.headers.get('content-type'),/spreadsheetml/);assert.equal(await raw(url+'/research.xlsx',{Host:'external.invalid'}),403);
+  assert.equal((await fetch(url+'/.local-data/research.xlsx')).status,404);
  }finally{if(server){server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}await fs.rm(root,{recursive:true,force:true});}
 });

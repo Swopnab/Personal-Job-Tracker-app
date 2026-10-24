@@ -2,7 +2,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const {jobLocation}=require('../data.js');
 test('DFW ranking uses the job location and distinguishes other Texas cities',()=>{
- for(const location of ['Plano','Fort Worth, TX','Dallas, Texas','Irving, TX','Arlington, TX'])assert.equal(jobLocation({location}).region,'dfw');
+ for(const location of ['Plano','Fort Worth, TX','Dallas, Texas','Irving, TX','Arlington, TX','North Richland Hills, TX','Hurst, TX','Euless, TX','Bedford, TX','Keller, TX'])assert.equal(jobLocation({location}).region,'dfw');
  assert.equal(jobLocation({location:'Austin, TX'}).region,'texas');
  assert.equal(jobLocation({location:'Arlington, VA'}).region,'other');
  assert.equal(jobLocation({location:'See posting'}).region,'unknown');
