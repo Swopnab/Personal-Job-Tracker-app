@@ -49,7 +49,7 @@
         const dfw=/\b(dallas|fort[ -]?worth|dfw|plano|irving|richardson|frisco|mckinney|carrollton|addison|grapevine|southlake|coppell|lewisville|denton|westlake|roanoke|allen|garland|mesquite|the colony|north richland hills|richland hills|hurst|euless|bedford|keller)\b/i.test(location) || /arlington.*(?:TX|Texas)/i.test(location);
         const texas=dfw||/\b(TX|Texas|Austin|Houston|San Antonio)\b/i.test(location);
         const explicit=String(job.workArrangement||'');
-        const arrangement=['Onsite','Hybrid','Remote'].includes(explicit)?explicit:/\bhybrid\b/i.test(location)?'Hybrid':/\bremote\b|home office/i.test(location)?'Remote':/\bon[ -]?site\b/i.test(location)?'Onsite':'Unknown';
+        const arrangement=['Onsite','Hybrid','Remote','Unknown'].includes(explicit)?explicit:/\bhybrid\b/i.test(location)?'Hybrid':/\bremote\b|home office/i.test(location)?'Remote':/\bon[ -]?site\b/i.test(location)?'Onsite':'Unknown';
         return {location,dfw,region:dfw?'dfw':texas?'texas':!location||/^(see posting|USA|United States)$/i.test(location)?'unknown':'other',arrangement};
     }
     function jobTerm(job={}) {
