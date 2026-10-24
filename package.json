@@ -13,7 +13,8 @@
     "update:local": "node scripts/update.cjs",
     "check:private": "node scripts/check-private.cjs",
     "import:mail": "node scripts/import-mail.cjs",
-    "mark": "node scripts/mark.cjs"
+    "mark": "node scripts/mark.cjs",
+    "match:resume": "node scripts/match-resume.cjs"
   },
   "devDependencies": {
     "playwright": "^1.63.0"

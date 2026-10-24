@@ -73,6 +73,21 @@
     function internationalLabel(job={}) {
         return ({cpt:'F-1 CPT stated',f1:'F-1 stated · confirm CPT',sponsorship:'Visa support · confirm CPT'})[job.internationalStatus]||'';
     }
-    const api = {opportunityRank,hasInternationalEvidence,internationalLabel,jobTerm,roleFocus,jobLocation,statuses,escapeHtml,dateOnly,safeLink,validateApplications,daysSince};
+    function resumeSkillMatch(resumeText='',jobText='') {
+        const definitions=[
+            ['Python',/\bpython\b/i],['Java',/\bjava\b/i],['JavaScript',/\bjavascript\b/i],['TypeScript',/\btypescript\b/i],
+            ['C++',/(?:^|[^a-z0-9])c\+\+(?!\+)/i],['C#',/(?:^|[^a-z0-9])c#(?!\w)/i],['C',/\bc\b(?![+#])/i],['Go',/\bgolang\b|(?:^|[,;/ ])Go(?=$|[,;/])/],['Rust',/\brust\b/i],['Swift',/\bswift\b/i],['Kotlin',/\bkotlin\b/i],['Scala',/\bscala\b/i],['Ruby',/\bruby\b/i],
+            ['React',/\breact(?:js|\.js)?\b/i],['Angular',/\bangular\b/i],['Vue',/\bvue(?:\.js)?\b/i],['Node.js',/\bnode(?:\.js|js)\b/i],['Next.js',/\bnext(?:\.js|js)\b/i],['HTML',/\bhtml5?\b/i],['CSS',/\bcss3?\b/i],['FastAPI',/\bfastapi\b/i],['Flask',/\bflask\b/i],['Django',/\bdjango\b/i],['Spring',/\bspring(?:\s+boot)?\b/i],['.NET',/(?:^|\W)\.net\b/i],
+            ['SQL',/\bsql\b/i],['PostgreSQL',/\b(?:postgresql|postgres)\b/i],['MySQL',/\bmysql\b/i],['SQLite',/\bsqlite\b/i],['MongoDB',/\bmongodb\b/i],['Redis',/\bredis\b/i],
+            ['AWS',/\baws\b|amazon web services/i],['Azure',/\bazure\b/i],['Google Cloud',/\bgcp\b|google cloud/i],['Docker',/\bdocker\b/i],['Kubernetes',/\b(?:kubernetes|k8s)\b/i],['Terraform',/\bterraform\b/i],['Linux',/\blinux\b/i],['Git',/\bgit\b/i],['REST APIs',/\brest(?:ful)?\b/i],['GraphQL',/\bgraphql\b/i],
+            ['PyTorch',/\bpytorch\b/i],['TensorFlow',/\btensorflow\b/i],['scikit-learn',/\bscikit[- ]learn\b/i],['Pandas',/\bpandas\b/i],['NumPy',/\bnumpy\b/i],['Spark',/\b(?:apache\s+)?spark\b/i],['Kafka',/\bkafka\b/i],['Hadoop',/\bhadoop\b/i],['Snowflake',/\bsnowflake\b/i],['Databricks',/\bdatabricks\b/i],['MATLAB',/\bmatlab\b/i],
+            ['LLMs',/\bllms?\b|large language models?/i],['RAG',/\brag\b|retrieval[- ]augmented generation/i],['LangChain',/\blangchain\b/i],['Computer vision',/computer vision/i],['Machine learning',/machine learning|\bml\b/i],['Testing',/\btesting\b|unit tests?|integration tests?|pytest|playwright|selenium/i],['CI/CD',/ci\s*\/\s*cd|continuous integration|github actions/i]
+        ];
+        const requirements=definitions.filter(([,pattern])=>pattern.test(String(jobText)));
+        const matched=requirements.filter(([,pattern])=>pattern.test(String(resumeText))).map(([name])=>name);
+        const missing=requirements.filter(([,pattern])=>!pattern.test(String(resumeText))).map(([name])=>name);
+        return {score:requirements.length>=3?Math.round(100*matched.length/requirements.length):null,matched,missing,total:requirements.length,method:'Detected technical skills are weighted equally. Requirements and preferences are not distinguished. This is keyword coverage, not an employer ATS score or hiring probability.'};
+    }
+    const api = {resumeSkillMatch,opportunityRank,hasInternationalEvidence,internationalLabel,jobTerm,roleFocus,jobLocation,statuses,escapeHtml,dateOnly,safeLink,validateApplications,daysSince};
     if (typeof module !== 'undefined') module.exports = api; else root.TrackerData = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
