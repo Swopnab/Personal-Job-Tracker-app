@@ -17,6 +17,12 @@
     dateApplied:a.dateApplied||r.dateApplied||''};
    for(const key of ['location','workArrangement','term','requisition'])if(a[key]||r[key])merged[key]=a[key]||r[key];
    if('starred' in a||'starred' in r)merged.starred=canonical?(latest.starred??false):(a.starred??r.starred);
+   if('listingUnavailable' in a||'listingUnavailable' in r){
+    const availabilityStamp=row=>row.listingAvailabilityUpdatedAt?Date.parse(row.listingAvailabilityUpdatedAt):0;
+    const source=!('listingUnavailable' in a)?r:!('listingUnavailable' in r)?a:availabilityStamp(a)>=availabilityStamp(r)?a:r;
+    merged.listingUnavailable=source.listingUnavailable;
+    if(source.listingAvailabilityUpdatedAt)merged.listingAvailabilityUpdatedAt=source.listingAvailabilityUpdatedAt;
+   }
    // A note edit or bookmark must not mask an employer's later status event.
    const winner=localWins?a:r;
    if(winner.statusUpdatedAt)merged.statusUpdatedAt=winner.statusUpdatedAt;else delete merged.statusUpdatedAt;

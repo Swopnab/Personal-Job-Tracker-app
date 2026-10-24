@@ -48,7 +48,7 @@ const matchInfo=a=>catalog.resumeMatches?.[a.id]||null;
 function rows(){
  const q=$('search-input').value.trim().toLowerCase(),region=$('region-filter').value,arrangement=$('arrangement-filter').value,city=$('location-filter').value.trim().toLowerCase(),auth=$('cpt-filter').value,role=$('role-filter').value,term=$('term-filter').value;
  return applications.filter(a=>{
-  if(D.applicationBucket(a)!==mode||mode==='applied'&&stage&&D.applicationStage(a)!==stage)return false;
+  if(mode==='available'&&a.listingUnavailable||D.applicationBucket(a)!==mode||mode==='applied'&&stage&&D.applicationStage(a)!==stage)return false;
   const j=jobInfo(a),geo=D.jobLocation(j),restricted=j.authStatus==='excluded'||j.degreeCheck==='incompatible';
   const authorization=!auth||auth==='explicit'&&(j.authStatus==='explicit'||j.internationalStatus==='cpt')&&!restricted||auth==='international'&&D.hasInternationalEvidence(j)||auth==='excluded'&&restricted||auth==='confirm'&&!restricted&&!['cpt','f1','sponsorship'].includes(j.internationalStatus)&&j.authStatus!=='explicit';
   return authorization&&(!region||geo.region===region)&&(!arrangement||geo.arrangement===arrangement)&&(!city||geo.location.toLowerCase().includes(city))&&(!role||D.roleFocus({...j,jobTitle:a.jobTitle})===role)&&(!term||(term==='summer')===/Summer 2027/i.test(D.jobTerm({...j,jobTitle:a.jobTitle})))&&(!q||[a.company,a.jobTitle,a.notes,geo.location,j.stack,j.recruiter,j.requisition].some(v=>String(v||'').toLowerCase().includes(q)));
@@ -64,7 +64,11 @@ function clearFilters(){for(const id of ['search-input','region-filter','arrange
 function switchMode(next){mode=next;clearFilters();render();}
 function external(url,text,cls=''){let safe='';try{safe=D.safeLink(url);}catch{}return safe?`<a class="${cls}" href="${e(safe)}" target="_blank" rel="noopener noreferrer">${e(text)} ↗</a>`:'';}
 function render(){
- const available=applications.filter(a=>D.applicationBucket(a)==='available'),applied=applications.filter(a=>D.applicationBucket(a)==='applied');
+ const available=applications.filter(a=>D.applicationBucket(a)==='available'&&!a.listingUnavailable),applied=applications.filter(a=>D.applicationBucket(a)==='applied');
+ const unavailable=applications.filter(a=>D.applicationBucket(a)==='available'&&a.listingUnavailable);
+ $('unavailable-jobs').hidden=mode!=='available'||!unavailable.length;
+ $('unavailable-count').textContent=unavailable.length;
+ $('unavailable-container').innerHTML=unavailable.map(a=>`<article class="unavailable-job" data-id="${e(a.id)}"><div><strong>${e(a.company)}</strong><span class="job-title">${e(a.jobTitle)}</span></div><div>${external(a.link,'Check link')}<button class="secondary" data-restore-id="${e(a.id)}">Restore</button></div></article>`).join('');
  $('opportunity-count').textContent=available.length;$('nav-count').textContent=applied.length;
  for(const [id,active]of [['opportunities-nav',mode==='available'],['all-applications',mode==='applied']]){$(id).classList.toggle('active',active);if(active)$(id).setAttribute('aria-current','page');else $(id).removeAttribute('aria-current');}
  $('list-heading').textContent=mode==='available'?'Available jobs':'Applied';$('list-description').textContent=mode==='available'?'Jobs you haven’t applied to. Check the posting before applying.':'Your applications and the replies you’ve received.';
@@ -77,7 +81,7 @@ function render(){
   const j=jobInfo(a),geo=D.jobLocation(j),m=matchInfo(a),score=m?.score!=null?m.score+'%':'—';
   const note=j.availabilityStatus==='talent-pool'?'Talent pool · not actively recruiting':j.group==='restricted'?'Closed or restricted · see Details':j.group==='unverified'?'Eligibility / availability needs checking':'';
   const meta=[mode==='applied'?geo.location:null,geo.arrangement==='Unknown'?null:geo.arrangement,mode==='applied'&&m?.score!=null?'Resume keywords '+score:null].filter(Boolean).join(' · ');
-  return `<tr data-id="${e(a.id)}"><td class="job-cell"><strong>${e(a.company)}</strong><span class="job-title">${e(a.jobTitle)}</span>${meta?`<span class="job-meta">${e(meta)}</span>`:''}${mode==='available'&&note?`<span class="job-note">${e(note)}</span>`:''}</td><td data-label="${mode==='applied'?'Status':'Resume match'}">${mode==='applied'?`<label class="sr-only" for="status-${e(a.id)}">Status for ${e(a.company)} ${e(a.jobTitle)}</label><select id="status-${e(a.id)}" class="status-select stage-${color(a.status)}" data-stage-id="${e(a.id)}">${options(a.status)}</select>`:`<span class="match-score" title="Technical keyword coverage; not an employer ATS score">${score}</span>`}</td><td class="date-location" data-label="${mode==='applied'?'Applied on':'Location'}">${e(mode==='applied'?date(a.dateApplied):geo.location||'Unverified')}</td><td class="row-actions">${mode==='available'?`${external(a.link,'Open job')}<button class="primary" data-action="applied" data-id="${e(a.id)}">Mark applied</button>`:''}<button class="secondary" data-action="details" data-id="${e(a.id)}">Details</button></td></tr>`;
+  return `<tr data-id="${e(a.id)}"><td class="job-cell"><strong>${e(a.company)}</strong><span class="job-title">${e(a.jobTitle)}</span>${meta?`<span class="job-meta">${e(meta)}</span>`:''}${mode==='available'&&note?`<span class="job-note">${e(note)}</span>`:''}</td><td data-label="${mode==='applied'?'Status':'Resume match'}">${mode==='applied'?`<label class="sr-only" for="status-${e(a.id)}">Status for ${e(a.company)} ${e(a.jobTitle)}</label><select id="status-${e(a.id)}" class="status-select stage-${color(a.status)}" data-stage-id="${e(a.id)}">${options(a.status)}</select>`:`<span class="match-score" title="Technical keyword coverage; not an employer ATS score">${score}</span>`}</td><td class="date-location" data-label="${mode==='applied'?'Applied on':'Location'}">${e(mode==='applied'?date(a.dateApplied):geo.location||'Unverified')}</td><td class="row-actions">${mode==='available'?`${external(a.link,'Open job')}<button class="primary" data-action="applied" data-id="${e(a.id)}">Mark applied</button>`:''}<button class="secondary" data-action="details" data-id="${e(a.id)}">Details</button>${mode==='available'?`<button class="unavailable-button" data-action="unavailable" data-id="${e(a.id)}" title="Job doesn’t exist" aria-label="Job doesn’t exist: ${e(a.company)} ${e(a.jobTitle)}">×</button>`:''}</td></tr>`;
  }).join('')}</tbody></table></div>`;
 }
 function details(id){
@@ -93,12 +97,18 @@ function openEditor(id=null){
  for(const [field,key]of [['company','company'],['jobtitle','jobTitle'],['status','status'],['date','dateApplied'],['link','link'],['location','location'],['arrangement','workArrangement'],['term','term'],['salary','salary'],['notes','notes']])$(`qa-${field}`).value=a[key]||jobInfo(a)[key]||'';
  $('editor-title').textContent=id?'Edit job':'Add a job';$('form-error').hidden=true;$('quick-add-modal').showModal();$('qa-company').focus();
 }
+async function setUnavailable(id,value){
+ const job=applications.find(a=>a.id===id);if(!job||D.applicationBucket(job)!=='available')return;
+ const now=new Date().toISOString();
+ if(await commit(applications.map(a=>a.id===id?{...a,listingUnavailable:value,listingAvailabilityUpdatedAt:now,updatedAt:now}:a)))toast(value?'Moved to “Job doesn’t exist”. You can restore it from that list.':'Job restored to Available jobs');
+}
 async function changeStage(id,status){const now=new Date().toISOString();if(await commit(applications.map(a=>a.id===id?{...a,status,statusUpdatedAt:now,updatedAt:now,dateApplied:a.dateApplied||(status==='Applied'?day():'')}:a))){switchMode(status==='Interested'?'available':'applied');toast(status==='Interested'?'Moved to Available jobs':'Application updated');}}
 $('qa-status').innerHTML=options('Interested');
 $('opportunities-nav').onclick=()=>switchMode('available');$('all-applications').onclick=()=>switchMode('applied');
 $('stage-filters').onclick=event=>{const button=event.target.closest('[data-stage-filter]');if(button){stage=button.dataset.stageFilter;limit=50;render();}};
 for(const id of ['search-input','region-filter','arrangement-filter','location-filter','sort-select','cpt-filter','role-filter','term-filter'])$(id).addEventListener(['search-input','location-filter'].includes(id)?'input':'change',()=>{limit=50;render();});
-$('applications-container').onclick=event=>{const button=event.target.closest('[data-action]');if(!button)return;const id=button.dataset.id;if(button.dataset.action==='applied')changeStage(id,'Applied');if(button.dataset.action==='details')details(id);if(button.dataset.action==='clear'){clearFilters();render();}};
+$('applications-container').onclick=event=>{const button=event.target.closest('[data-action]');if(!button)return;const id=button.dataset.id;if(button.dataset.action==='unavailable')setUnavailable(id,true);if(button.dataset.action==='applied')changeStage(id,'Applied');if(button.dataset.action==='details')details(id);if(button.dataset.action==='clear'){clearFilters();render();}};
+$('unavailable-container').onclick=event=>{const button=event.target.closest('[data-restore-id]');if(button)setUnavailable(button.dataset.restoreId,false);};
 $('applications-container').onchange=event=>{if(event.target.dataset.stageId)changeStage(event.target.dataset.stageId,event.target.value);};
 $('add-application-btn').onclick=()=>openEditor();$('show-more').onclick=()=>{limit+=50;render();};$('refresh-data').onclick=()=>{setBusy(true);load();};
 $('quick-add-close').onclick=$('quick-add-cancel').onclick=()=>$('quick-add-modal').close();$('details-close').onclick=()=>$('details-modal').close();

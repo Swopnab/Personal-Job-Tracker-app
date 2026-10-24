@@ -12,7 +12,7 @@ async function main(args=process.argv.slice(2)){
  const matches=values.id?(candidates.has(values.id)?[candidates.get(values.id)]:[]):[...candidates.values()].filter(row=>row.company.toLowerCase()===values.company.toLowerCase()&&row.jobTitle.toLowerCase()===values.role.toLowerCase());
  if(matches.length!==1)throw Error('No unique role found. Supply the exact application ID from local records.');
  const source=matches[0];if(workspace.deleted.includes(source.id))throw Error('This role was deleted. Restore it explicitly before changing status.');
- const row={};for(const key of ['id','company','jobTitle','notes','salary','link','location','workArrangement','term','requisition','starred','createdAt'])if(key in source)row[key]=source[key];
+ const row={};for(const key of ['id','company','jobTitle','notes','salary','link','location','workArrangement','term','requisition','starred','listingUnavailable','listingAvailabilityUpdatedAt','createdAt'])if(key in source)row[key]=source[key];
  const now=new Date();Object.assign(row,{status:values.status,statusUpdatedAt:now.toISOString(),updatedAt:now.toISOString(),dateApplied:values.date||source.dateApplied||''});
  if(values.status==='Applied'&&!row.dateApplied)row.dateApplied=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
  const existing=workspace.items.find(item=>item.id===row.id);if(existing)row.notes=existing.notes||'';

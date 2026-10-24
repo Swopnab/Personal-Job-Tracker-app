@@ -38,9 +38,10 @@
                 if (typeof value !== 'string' || value.length > (key==='notes'?10000:500)) throw new Error('Invalid '+key);
                 result[key] = value;
             }
+            if ('listingUnavailable' in row) {if (typeof row.listingUnavailable!=='boolean') throw new Error('Invalid listing availability flag');result.listingUnavailable=row.listingUnavailable;}
             if ('starred' in row) {if (typeof row.starred!=='boolean') throw new Error('Invalid saved flag');result.starred=row.starred;}
             if ('workArrangement' in row) {if (!['','Unknown','Onsite','Hybrid','Remote'].includes(row.workArrangement)) throw new Error('Invalid work arrangement');result.workArrangement=row.workArrangement;}
-            for (const key of ['createdAt','updatedAt','statusUpdatedAt']) if (row[key]) {
+            for (const key of ['createdAt','updatedAt','statusUpdatedAt','listingAvailabilityUpdatedAt']) if (row[key]) {
                 if (typeof row[key] !== 'string' || !Number.isFinite(Date.parse(row[key]))) throw new Error('Invalid timestamp');
                 result[key] = new Date(row[key]).toISOString();
             }
