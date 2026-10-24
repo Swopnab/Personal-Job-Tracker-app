@@ -38,7 +38,7 @@ async function load(){
   const last=(mail.lastCheckedAt||mail.lastSyncedAt)?new Date(mail.lastCheckedAt||mail.lastSyncedAt):null;$('sync-state').textContent=last?'Gmail checked '+last.toLocaleString(undefined,{month:'short',day:'numeric'})+' · '+mail.items.length+' applications · updates on request':'Gmail updates on request · say “scan Gmail” to refresh';
   if(firstLoad&&catalog.jobs.length){browseMode=catalog.research?.startView==='applications'?'applications':'opportunities';firstLoad=false;}
   if(catalog.notice){$('research-notice').hidden=false;$('research-notice-text').textContent=catalog.notice.text;$('research-notice-link').href=TrackerData.safeLink(catalog.notice.url);}
-  if(catalog.research?.applicationFocus){$('all-applications').before($('opportunities-nav'));document.querySelector('.heading h1').textContent='Your applications.';}
+  if(catalog.research?.applicationFocus){$('opportunities-nav').before($('all-applications'));document.querySelector('.heading h1').textContent='Your applications.';}
   $('research-summary').textContent=catalog.profileSummary||'Summer 2027 · DFW first · remote, hybrid and onsite';
   let researchDownload=$('research-download');
   if(!researchDownload){researchDownload=document.createElement('a');researchDownload.id='research-download';researchDownload.className='text-btn';researchDownload.href='./research.xlsx';researchDownload.download='Summer-2027-Internships.xlsx';researchDownload.textContent='↓ Excel list';$('export-btn').before(researchDownload);}
