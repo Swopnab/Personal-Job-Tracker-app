@@ -52,6 +52,17 @@
         const arrangement=['Onsite','Hybrid','Remote'].includes(explicit)?explicit:/\bhybrid\b/i.test(location)?'Hybrid':/\bremote\b|home office/i.test(location)?'Remote':/\bon[ -]?site\b/i.test(location)?'Onsite':'Unknown';
         return {location,dfw,region:dfw?'dfw':texas?'texas':!location||/^(see posting|USA|United States)$/i.test(location)?'unknown':'other',arrangement};
     }
-    const api = {jobLocation,statuses,escapeHtml,dateOnly,safeLink,validateApplications,daysSince};
+    function jobTerm(job={}) {
+        const text=[job.term,job.jobTitle].filter(Boolean).join(' ');
+        if (/summer.{0,80}2027|2027.{0,80}summer/i.test(text)) return 'Summer 2027';
+        if (/spring.{0,40}2027|2027.{0,40}spring/i.test(text)) return 'Spring 2027';
+        return job.term || '';
+    }
+    function roleFocus(job={}) {
+        if(job.roleCategory)return job.roleCategory;
+        const title=String(job.jobTitle||'');
+        return /machine learning|AI[ /&-]|computer vision/i.test(title)?'ai':/data engineer|data scien|analytics/i.test(title)?'data':/full[ -]?stack|front[ -]?end|web develop|mobile app/i.test(title)?'fullstack':/software|back[ -]?end|developer/i.test(title)?'software':'';
+    }
+    const api = {jobTerm,roleFocus,jobLocation,statuses,escapeHtml,dateOnly,safeLink,validateApplications,daysSince};
     if (typeof module !== 'undefined') module.exports = api; else root.TrackerData = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

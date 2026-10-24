@@ -13,3 +13,4 @@ test('work arrangement requires explicit evidence; city alone is not onsite',()=
  assert.equal(jobLocation({location:'Dallas, TX',workArrangement:'Hybrid'}).arrangement,'Hybrid');
  assert.equal(jobLocation({location:'On-site, Plano'}).arrangement,'Onsite');
 });
+test('filters recognize explicit mail titles and do not invent an internship season',()=>{const {jobTerm,roleFocus}=require('../data.js');assert.equal(jobTerm({jobTitle:'Software Engineer, Intern (Summer 2027) - US'}),'Summer 2027');assert.equal(jobTerm({term:'2027 · summer May/June start available'}),'Summer 2027');assert.equal(jobTerm({jobTitle:'Technology Intern'}),'');assert.equal(jobTerm({jobTitle:'Full Stack Co-op - Spring 2027'}),'Spring 2027');assert.equal(roleFocus({jobTitle:'Data Engineer Intern'}),'data');assert.equal(roleFocus({jobTitle:'AI-Enabled Full-Stack Intern'}),'ai');});

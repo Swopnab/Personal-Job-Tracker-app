@@ -28,7 +28,7 @@ function mergeBatch(snapshot,batch){
   events.push({applicationId:id,company:a.company,jobTitle:a.jobTitle,status:a.status,at:update.at,summary:update.summary});
   hashes.add(hash);imported++;
  }
- return {snapshot:{...snapshot,items:validateApplications(items),events,processedMessageHashes:[...hashes],lastSyncedAt:new Date().toISOString()},imported};
+ return {snapshot:{...snapshot,items:validateApplications(items),events,processedMessageHashes:[...hashes],lastSyncedAt:imported?new Date().toISOString():snapshot.lastSyncedAt,lastCheckedAt:new Date().toISOString()},imported};
 }
 function main(){
  const input=process.argv[2];if(!input)throw Error('Usage: npm run import:mail -- /path/to/reviewed-updates.json');
@@ -38,7 +38,7 @@ function main(){
   const target=path.join(dir,'applications.json');
   const snapshot=JSON.parse(fs.readFileSync(fs.existsSync(target)?target:path.join(root,'applications.json'),'utf8'));
   const result=mergeBatch(snapshot,JSON.parse(fs.readFileSync(input,'utf8')));
-  if(result.imported){
+  { // Record a successful scan even when every message was already processed.
    if(fs.existsSync(target)){const backups=path.join(root,'.local-backups');fs.mkdirSync(backups,{recursive:true,mode:0o700});fs.copyFileSync(target,path.join(backups,`applications-${Date.now()}.json`));}
    const temp=target+'.tmp';fs.writeFileSync(temp,JSON.stringify(result.snapshot,null,2)+'\n',{mode:0o600});fs.renameSync(temp,target);
   }

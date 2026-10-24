@@ -35,7 +35,7 @@ async function load(){
   catalogById=new Map([...catalog.jobs,...catalog.leads,...catalog.restricted].map(a=>[a.id,a]));
   const seed=[...catalogById.values()].map(a=>({id:a.id,company:a.company,jobTitle:a.jobTitle,status:'Interested',dateApplied:'',link:a.link||'',salary:a.salary||'',notes:'',createdAt:catalog.importedAt,updatedAt:'2026-01-01T00:00:00.000Z',statusUpdatedAt:'2026-01-01T00:00:00.000Z',...(a.requisition?{requisition:a.requisition}:{})}));
   applications=TrackerSync.mergeApplications(validateApplications(TrackerSync.mergeApplications(seed,mail.items)),local,deleted);
-  const last=mail.lastSyncedAt?new Date(mail.lastSyncedAt):null;$('sync-state').textContent=last?'Gmail checked '+last.toLocaleString(undefined,{month:'short',day:'numeric'})+' · '+mail.items.length+' applications · updates on request':'Gmail updates on request · say “scan Gmail” to refresh';
+  const last=(mail.lastCheckedAt||mail.lastSyncedAt)?new Date(mail.lastCheckedAt||mail.lastSyncedAt):null;$('sync-state').textContent=last?'Gmail checked '+last.toLocaleString(undefined,{month:'short',day:'numeric'})+' · '+mail.items.length+' applications · updates on request':'Gmail updates on request · say “scan Gmail” to refresh';
   if(firstLoad&&catalog.jobs.length){browseMode='opportunities';firstLoad=false;}
   if(catalog.notice){$('research-notice').hidden=false;$('research-notice-text').textContent=catalog.notice.text;$('research-notice-link').href=TrackerData.safeLink(catalog.notice.url);}
   $('research-summary').textContent=catalog.profileSummary||'Summer 2027 · DFW first · remote, hybrid and onsite';
@@ -45,13 +45,13 @@ async function load(){
 async function commit(rows){
  if(busy)return false;
  const valid=validateApplications(rows);setBusy(true);
- try{if(apiMode){const result=await request('PUT',{revision,items:valid});revision=result.revision;applications=validateApplications(result.items);}else{if(diskMode){const saved=await request('PUT',{revision,items:valid,deleted},'/api/workspace');revision=saved.revision;}applications=valid;try{localStorage.setItem('jobTrackerApplications',JSON.stringify(valid));}catch{warning('Browser storage is unavailable. Changes are kept in this tab; export a backup before closing.');}}return true;}
+ try{if(apiMode){const result=await request('PUT',{revision,items:valid});revision=result.revision;applications=validateApplications(result.items);}else{if(diskMode){const saved=await request('PUT',{revision,items:valid,deleted},'/api/workspace');revision=saved.revision;}applications=valid;try{localStorage.setItem('jobTrackerApplications',JSON.stringify(valid));}catch{warning(diskMode?'Saved on this computer; this browser cannot keep an offline cache.':'Browser storage is unavailable. Changes are kept in this tab; export a backup before closing.');}}return true;}
  catch(error){if($('quick-add-modal').open){$('form-error').textContent=error.message;$('form-error').hidden=false;}else toast(error.message,true);return false;}
  finally{setBusy(false);render();}
 }
 const inbox=a=>a.status!=='Interested'||(!catalogById.has(a.id));
 function sourceInfo(a){return catalogById.get(a.id)||catalogById.get(mail.items.find(m=>m.id===a.id)?.catalogId)||mail.items.find(m=>TrackerSync.normalize(m.company)===TrackerSync.normalize(a.company)&&TrackerSync.normalize(m.jobTitle)===TrackerSync.normalize(a.jobTitle))||{};}
-function jobInfo(a){const c=sourceInfo(a);return {...c,...(a.location?{location:a.location}:{}),...(a.workArrangement?{workArrangement:a.workArrangement}:{}),...(a.term?{term:a.term}:{})};}
+function jobInfo(a){const c=sourceInfo(a);const info={...c,...(a.location?{location:a.location}:{}),...(a.workArrangement?{workArrangement:a.workArrangement}:{}),...(a.term?{term:a.term}:{})};return {...info,term:TrackerData.jobTerm({...info,jobTitle:a.jobTitle}),roleCategory:TrackerData.roleFocus({...info,jobTitle:a.jobTitle})};}
 function eligibility(c){return c.authStatus==='excluded'||c.degreeCheck==='incompatible'?'excluded':(c.authStatus==='explicit'||/Explicit CPT accepted/i.test(c.authorization||''))?'explicit':'confirm';}
 function visibleRows(){
  const q=$('search-input').value.trim().toLowerCase(),status=$('status-filter').value,cpt=$('cpt-filter').value,arrangement=$('arrangement-filter').value,region=$('region-filter').value,location=$('location-filter').value.trim().toLowerCase(),role=$('role-filter').value,term=$('term-filter').value,saved=$('saved-filter').checked;
